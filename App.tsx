@@ -4,6 +4,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 
 import LoginScreen from './screens/LoginScreen'; 
 import RegisterScreen from './screens/RegisterScreen'; 
+import OtpScreen from './screens/OtpScreen';
 
 const Stack = createStackNavigator();
 
@@ -21,6 +22,11 @@ const App = () => {
           component={RegisterScreen}
           options={{ headerShown: false }} 
         />
+        <Stack.Screen 
+          name="Otp" 
+          component={OtpScreen}
+          options={{ headerShown: false }} 
+        /> 
       </Stack.Navigator>
     </NavigationContainer>
   );

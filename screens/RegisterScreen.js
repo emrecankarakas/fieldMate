@@ -67,17 +67,18 @@ const RegisterScreen = ({navigation}) => {
 
     try {
       const response = await axios.post(`${API_URL}/register`, {
-        fullname,
         email,
-        password,
-        avatar: selectedAvatar.name,
-        role: selectedRole,
-        age: selectedDate,
       });
 
-      if (response.status === 201) {
-        alert('Registration successful.');
-        navigation.navigate('Login');
+      if (response.status === 200) {
+        navigation.navigate('Otp', {
+          fullname,
+          email,
+          password,
+          avatar: selectedAvatar.name,
+          role: selectedRole,
+          age: selectedDate,
+        });
       } else {
         alert('Registration failed.');
       }
