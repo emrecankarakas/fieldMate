@@ -5,13 +5,19 @@ import { createStackNavigator } from '@react-navigation/stack';
 import LoginScreen from './screens/LoginScreen'; 
 import RegisterScreen from './screens/RegisterScreen'; 
 import OtpScreen from './screens/OtpScreen';
+import Home from './screens/Home';
 
 const Stack = createStackNavigator();
 
 const App = () => {
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName="Login">
+      <Stack.Navigator initialRouteName="Home">
+      <Stack.Screen 
+          name="Home" 
+          component={Home}
+          options={{ headerShown: false }} 
+        /> 
         <Stack.Screen 
           name="Login" 
           component={LoginScreen}
