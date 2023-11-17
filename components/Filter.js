@@ -29,7 +29,6 @@ const Filter = ({isVisible, onClose, onFilter, filterOptions}) => {
   };
 
   const handleModalPress = () => {
-    // Modal dışında bir yere tıklandığında modal'ı kapat
     onClose();
   };
 

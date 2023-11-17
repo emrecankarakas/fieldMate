@@ -7,7 +7,7 @@ const FilterButton = ({filterOptions, onFilterPress}) => {
 
   const handleFilterPress = () => {
     setModalVisible(true);
-    // Burada filtreleme seçeneklerini de kullanabilirsiniz
+
     onFilterPress();
   };
 
