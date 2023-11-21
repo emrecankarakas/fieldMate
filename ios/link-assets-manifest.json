@@ -1,0 +1,13 @@
+{
+  "migIndex": 1,
+  "data": [
+    {
+      "path": "assets/fonts/SairaStencilOne-Regular.ttf",
+      "sha1": "8f1ee8e9c76fd901113f6106a44c2eed8b8a0f00"
+    },
+    {
+      "path": "assets/fonts/ShadowsIntoLight-Regular.ttf",
+      "sha1": "e512d65b44398e83907215402d477643751c1dfa"
+    }
+  ]
+}

@@ -5,11 +5,13 @@ import {
   ScrollView,
   TouchableOpacity,
   Text,
+  StatusBar,
 } from 'react-native';
 import TopMenu from '../components/TopMenu';
 import BottomMenu from '../components/BottomMenu';
 import FilterButton from '../components/FilterButton';
-import PlayerAd from '../components/PlayerAd'; // PlayerAd bileşenini içeri aktarıyoruz
+import PlayerAd from '../components/PlayerAd';
+import MatchAd from '../components/MatchAd';
 
 const Home = () => {
   const [activeTab, setActiveTab] = useState('matches');
@@ -32,6 +34,70 @@ const Home = () => {
         return [];
     }
   };
+  const matchAds = [
+    {
+      team1Info: {
+        logo: require('../assets/avatars/avatar1.png'),
+        name: 'Team A',
+        players: [
+          {position: 'GK', isFull: false},
+          {position: 'CB', isFull: true},
+          {position: 'CB', isFull: false},
+          {position: 'CB', isFull: true},
+          {position: 'CM', isFull: true},
+          {position: 'CM', isFull: false},
+          {position: 'CF', isFull: true},
+        ],
+        time: '19:00-20:00',
+        day: 'Monday',
+        location: 'Çakmak, Yıldızlar Halı Saha',
+      },
+      team2Info: {
+        logo: require('../assets/avatars/avatar1.png'),
+        name: 'Team B',
+        players: [
+          {position: 'GK', isFull: true},
+          {position: 'CB', isFull: false},
+          {position: 'CB', isFull: true},
+          {position: 'CB', isFull: true},
+          {position: 'CM', isFull: true},
+          {position: 'CM', isFull: false},
+          {position: 'CF', isFull: true},
+        ],
+      },
+    },
+    {
+      team1Info: {
+        logo: require('../assets/avatars/avatar1.png'),
+        name: 'Team A',
+        players: [
+          {position: 'GK', isFull: true},
+          {position: 'CB', isFull: false},
+          {position: 'CB', isFull: true},
+          {position: 'CB', isFull: true},
+          {position: 'CM', isFull: true},
+          {position: 'CM', isFull: true},
+          {position: 'CF', isFull: false},
+        ],
+        time: '19:00-20:00',
+        day: 'Thursday',
+        location: 'İstanbul, Çakmak, Yıldızlar Halı Saha',
+      },
+      team2Info: {
+        logo: require('../assets/avatars/avatar1.png'),
+        name: 'Team B',
+        players: [
+          {position: 'GK', isFull: true},
+          {position: 'CB', isFull: false},
+          {position: 'CB', isFull: true},
+          {position: 'CB', isFull: true},
+          {position: 'CM', isFull: false},
+          {position: 'CM', isFull: true},
+          {position: 'CF', isFull: false},
+        ],
+      },
+    },
+  ];
 
   const userPlayerAds = [
     {
@@ -92,6 +158,7 @@ const Home = () => {
 
   return (
     <View style={styles.container}>
+      <StatusBar barStyle="light-content" backgroundColor="#0E1E5B" />
       <TopMenu activeTab={activeTab} onTabPress={handleTabPress} />
       <FilterButton
         filterOptions={renderFilterOptions()}
@@ -103,6 +170,13 @@ const Home = () => {
           userPlayerAds.map((playerAd, index) => (
             <View key={index}>
               <PlayerAd playerAdInfo={playerAd} />
+            </View>
+          ))}
+
+        {activeTab === 'matches' &&
+          matchAds.map((matchAd, index) => (
+            <View key={index}>
+              <MatchAd {...matchAd} />
             </View>
           ))}
       </ScrollView>
@@ -122,8 +196,8 @@ const styles = StyleSheet.create({
     bottom: 90,
     right: 16,
     backgroundColor: '#0e1e5b',
-    width: 50,
-    height: 50,
+    width: 36,
+    height: 36,
     borderRadius: 25,
     alignItems: 'center',
     justifyContent: 'center',
@@ -132,7 +206,7 @@ const styles = StyleSheet.create({
 
   addButtonText: {
     color: 'white',
-    fontSize: 12,
+    fontSize: 22,
   },
   container: {
     backgroundColor: '#D9D9D9',

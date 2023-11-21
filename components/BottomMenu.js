@@ -10,7 +10,9 @@ const BottomMenu = () => {
   };
   return (
     <View style={styles.container}>
-      <TouchableOpacity style={styles.circle} onPress={''}>
+      <TouchableOpacity
+        style={styles.circle}
+        onPress={() => handlePress('Profile')}>
         <Image
           source={require('../assets/icons/user.png')}
           style={styles.icon}
@@ -55,7 +57,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 16,
+    paddingHorizontal: 18,
     backgroundColor: 'white',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
@@ -73,27 +75,27 @@ const styles = StyleSheet.create({
   },
 
   bigCircleContainer: {
-    width: 90,
+    width: 80,
     height: 60,
     justifyContent: 'center',
     alignItems: 'center',
   },
 
   bigCircle: {
-    width: 80,
-    height: 80,
+    width: 70,
+    height: 70,
     borderRadius: 40,
     justifyContent: 'center',
     alignItems: 'center',
     position: 'absolute',
-    bottom: 10,
+    bottom: 15,
     marginHorizontal: 'auto',
     backgroundColor: 'white',
   },
 
   bigCircleInner: {
-    width: 60,
-    height: 60,
+    width: 55,
+    height: 55,
     borderRadius: 30,
     backgroundColor: '#0E1E5B',
     justifyContent: 'center',
@@ -113,8 +115,8 @@ const styles = StyleSheet.create({
   },
 
   bigIcon: {
-    width: 42,
-    height: 42,
+    width: 38,
+    height: 38,
     tintColor: 'white',
   },
 });

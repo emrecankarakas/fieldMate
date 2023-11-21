@@ -6,6 +6,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   ImageBackground,
+  StatusBar,
 } from 'react-native';
 import axios from 'axios';
 import CustomButton from '../components/CustomButton';
@@ -44,7 +45,7 @@ const LoginScreen = ({navigation}) => {
         placeholder="E-mail"
         onChangeText={text => setEmail(text)}
       />
-
+      <StatusBar barStyle="light-content" backgroundColor="#0E1E5B" />
       <TextInput
         style={styles.input}
         placeholder="Password"

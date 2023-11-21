@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   ImageBackground,
   Image,
+  StatusBar,
 } from 'react-native';
 import CustomButton from '../components/CustomButton';
 import axios from 'axios';
@@ -106,7 +107,7 @@ const RegisterScreen = ({navigation}) => {
           <Text style={styles.avatarText}>Choose Avatar</Text>
         </TouchableOpacity>
       )}
-
+      <StatusBar barStyle="light-content" backgroundColor="#0E1E5B" />
       <TextInput
         style={styles.input}
         placeholder="Full Name"

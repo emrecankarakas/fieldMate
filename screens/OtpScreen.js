@@ -5,6 +5,7 @@ import {
   TextInput,
   StyleSheet,
   TouchableOpacity,
+  StatusBar,
 } from 'react-native';
 import axios from 'axios';
 
@@ -95,6 +96,7 @@ const OtpScreen = ({navigation, route}) => {
 
   return (
     <View style={styles.container}>
+      <StatusBar barStyle="light-content" backgroundColor="#0E1E5B" />
       <Text style={styles.headerText}>Verification Code</Text>
       <Text style={styles.subHeaderText}>
         We have sent the verification code to
