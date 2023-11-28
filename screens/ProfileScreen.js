@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useContext} from 'react';
 import {
   View,
   Text,
@@ -7,15 +7,22 @@ import {
   Image,
   TouchableOpacity,
 } from 'react-native';
+import {useAuth} from '../AuthContext';
 import BottomMenu from '../components/BottomMenu';
+import avatarMapping from '../assets/avatars/avatarMapping';
 
 const ProfileScreen = ({navigation}) => {
-  const mockUserData = {
-    fullname: 'John Doe',
-    email: 'john.doe@example.com',
-    avatar: require('../assets/avatars/avatar1.png'),
-    role: 'Goalkeeper',
-    age: '25',
+  const {user, logoutUser} = useAuth();
+
+  const handleLogout = () => {
+    logoutUser();
+  };
+
+  const timestampToAge = timestamp => {
+    const age =
+      (new Date().getTime() - timestamp) / (1000 * 60 * 60 * 24 * 365);
+
+    return Math.floor(age);
   };
 
   return (
@@ -32,17 +39,30 @@ const ProfileScreen = ({navigation}) => {
 
         <Text style={styles.headerTitle}>Field Mate</Text>
 
-        <View style={{width: 24}} />
+        <TouchableOpacity onPress={handleLogout} style={{right: 20}}>
+          <Text style={{color: 'white', fontSize: 16, fontWeight: 'bold'}}>
+            Logout
+          </Text>
+        </TouchableOpacity>
       </View>
 
       <View style={styles.contentContainer}>
         <StatusBar barStyle="light-content" backgroundColor="#0E1E5B" />
         <View style={styles.profileContent}>
-          <Image source={mockUserData.avatar} style={styles.avatar} />
-          <Text style={styles.profileName}>{mockUserData.fullname}</Text>
-          <Text style={styles.userInfo}>{`Email: ${mockUserData.email}`}</Text>
-          <Text style={styles.userInfo}>{`Role: ${mockUserData.role}`}</Text>
-          <Text style={styles.userInfo}>{`Age: ${mockUserData.age}`}</Text>
+          {user && (
+            <>
+              <Image
+                source={avatarMapping[user.avatar]}
+                style={styles.avatar}
+              />
+              <Text style={styles.profileName}>{user.fullname}</Text>
+              <Text style={styles.userInfo}>{`Email: ${user.email}`}</Text>
+              <Text style={styles.userInfo}>{`Role: ${user.role}`}</Text>
+              <Text style={styles.userInfo}>{`Age: ${timestampToAge(
+                user.age,
+              )}`}</Text>
+            </>
+          )}
         </View>
       </View>
 

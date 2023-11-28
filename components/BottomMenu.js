@@ -18,7 +18,9 @@ const BottomMenu = () => {
           style={styles.icon}
         />
       </TouchableOpacity>
-      <TouchableOpacity style={styles.circle} onPress={''}>
+      <TouchableOpacity
+        style={styles.circle}
+        onPress={() => handlePress('Message')}>
         <Image
           source={require('../assets/icons/message.png')}
           style={styles.icon}

@@ -20,8 +20,6 @@ const Home = () => {
     setActiveTab(tab);
   };
 
-  const handleProfilePress = () => {};
-
   const renderFilterOptions = () => {
     switch (activeTab) {
       case 'players':
@@ -185,7 +183,7 @@ const Home = () => {
           <Text style={styles.addButtonText}>+</Text>
         </View>
       </TouchableOpacity>
-      <BottomMenu onProfilePress={handleProfilePress} />
+      <BottomMenu />
     </View>
   );
 };

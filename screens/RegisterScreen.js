@@ -15,18 +15,18 @@ import AvatarSelection from '../components/AvatarSelection';
 import AgePicker from '../components/AgePicker';
 import DropDownPicker from 'react-native-dropdown-picker';
 
-const API_URL = 'http://192.168.1.34:5000/users';
+const API_URL = 'http://192.168.1.37:5000/users';
 
 const avatarOptions = [
-  {name: 'Avatar 1', image: require('../assets/avatars/avatar1.png')},
-  {name: 'Avatar 2', image: require('../assets/avatars/avatar2.png')},
-  {name: 'Avatar 3', image: require('../assets/avatars/avatar3.png')},
-  {name: 'Avatar 4', image: require('../assets/avatars/avatar4.png')},
-  {name: 'Avatar 5', image: require('../assets/avatars/avatar5.png')},
-  {name: 'Avatar 6', image: require('../assets/avatars/avatar6.png')},
-  {name: 'Avatar 7', image: require('../assets/avatars/avatar4.png')},
-  {name: 'Avatar 8', image: require('../assets/avatars/avatar5.png')},
-  {name: 'Avatar 9', image: require('../assets/avatars/avatar6.png')},
+  {name: 'avatar1', image: require('../assets/avatars/avatar1.png')},
+  {name: 'avatar2', image: require('../assets/avatars/avatar2.png')},
+  {name: 'avatar3', image: require('../assets/avatars/avatar3.png')},
+  {name: 'avatar4', image: require('../assets/avatars/avatar4.png')},
+  {name: 'avatar5', image: require('../assets/avatars/avatar5.png')},
+  {name: 'avatar6', image: require('../assets/avatars/avatar6.png')},
+  {name: 'avatar7', image: require('../assets/avatars/avatar4.png')},
+  {name: 'avatar8', image: require('../assets/avatars/avatar5.png')},
+  {name: 'avatar9', image: require('../assets/avatars/avatar6.png')},
 ];
 const footballRoles = [
   {label: 'Goalkeeper', value: 'goalkeeper'},
@@ -127,6 +127,7 @@ const RegisterScreen = ({navigation}) => {
         onChangeText={text => setPassword(text)}
       />
       <DropDownPicker
+        placeholder="Select a role"
         open={open}
         value={selectedRole}
         items={footballRoles}

@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useContext} from 'react';
 import {
   View,
   Text,
@@ -10,10 +10,12 @@ import {
 } from 'react-native';
 import axios from 'axios';
 import CustomButton from '../components/CustomButton';
+import {useAuth} from '../AuthContext.js';
 
-const API_URL = 'http://192.168.1.34:5000/users';
+const API_URL = 'http://192.168.1.37:5000/users';
 
 const LoginScreen = ({navigation}) => {
+  const {loginUser} = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
@@ -25,7 +27,8 @@ const LoginScreen = ({navigation}) => {
       });
 
       if (response.status === 200) {
-        navigation.navigate('Register');
+        loginUser(response.data.user); // Kullanıcıyı context'e ekleyin
+        navigation.navigate('Home');
       } else {
         alert('Login failed');
       }

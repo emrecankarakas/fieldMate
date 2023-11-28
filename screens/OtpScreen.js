@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import axios from 'axios';
 
-const API_URL = 'http://192.168.1.34:5000/users';
+const API_URL = 'http://192.168.1.37:5000/users';
 
 const OtpScreen = ({navigation, route}) => {
   const {fullname, email, password, avatar, role, age} = route.params;
@@ -96,7 +96,7 @@ const OtpScreen = ({navigation, route}) => {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#0E1E5B" />
+      <StatusBar barStyle="light-content" backgroundColor="black" />
       <Text style={styles.headerText}>Verification Code</Text>
       <Text style={styles.subHeaderText}>
         We have sent the verification code to
@@ -129,10 +129,7 @@ const OtpScreen = ({navigation, route}) => {
             Resend {resendTimer > 0 ? `(${resendTimer}s)` : ''}
           </Text>
         </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.button}
-          onPress={handleVerifyOTP}
-          disabled={resendDisabled}>
+        <TouchableOpacity style={styles.button} onPress={handleVerifyOTP}>
           <Text style={styles.buttonText}>Confirm</Text>
         </TouchableOpacity>
       </View>
