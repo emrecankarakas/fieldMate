@@ -1,9 +1,9 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useMemo, useCallback} from 'react';
 import {
   View,
   Text,
   TouchableOpacity,
-  FlatList,
+  ScrollView,
   StyleSheet,
   Image,
   Alert,
@@ -14,6 +14,9 @@ import {
 import {useAuth} from '../AuthContext';
 import avatarMapping from '../assets/avatars/avatarMapping';
 import BottomMenu from '../components/BottomMenu';
+import database from '@react-native-firebase/database';
+
+const API_URL = 'http://192.168.1.37:5000/users';
 
 const MessageScreen = ({navigation}) => {
   const [activeTab, setActiveTab] = useState('messages');
@@ -23,14 +26,84 @@ const MessageScreen = ({navigation}) => {
   const [userInfoModalVisible, setUserInfoModalVisible] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
-
+  const [messages, setMessages] = useState([]);
   const {user} = useAuth();
-  const API_URL = 'http://192.168.1.37:5000/users';
 
-  const messages = [
-    {id: '1', name: 'Friend 1', lastMessage: 'Hello there!', time: '10:30 AM'},
-    {id: '2', name: 'Friend 2', lastMessage: 'How are you?', time: '11:45 AM'},
-  ];
+  const groupMessagesByUser = (messagesData, currentUsername) => {
+    const groupedMessages = {};
+
+    Object.entries(messagesData).forEach(([messageId, message]) => {
+      const isSender = message.sender === currentUsername;
+      const isReceiver = message.receiver === currentUsername;
+
+      if (isSender || isReceiver) {
+        const otherUser = isSender ? message.receiver : message.sender;
+
+        if (
+          !groupedMessages[otherUser] ||
+          groupedMessages[otherUser].timestamp < message.timestamp
+        ) {
+          groupedMessages[otherUser] = {
+            user: otherUser,
+            lastMessage: message.text,
+            time: new Date(message.timestamp).toLocaleTimeString('en-US', {
+              hour: 'numeric',
+              minute: 'numeric',
+            }),
+          };
+        }
+      }
+    });
+
+    return Object.values(groupedMessages);
+  };
+
+  const fetchData = useCallback(async () => {
+    try {
+      if (activeTab === 'friends') {
+        await fetchFriendRequests();
+        await fetchUserFriends();
+      } else if (activeTab === 'messages') {
+        const messagesRef = database().ref('messages');
+        const snapshot = await messagesRef.once('value');
+        const data = snapshot.val();
+
+        if (data) {
+          const groupedMessages = groupMessagesByUser(data, user.username);
+          setMessages(groupedMessages);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, [activeTab, user.username]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  useEffect(() => {
+    const messagesRef = database().ref('messages');
+
+    const handleSnapshot = snapshot => {
+      const data = snapshot.val();
+
+      if (data) {
+        const groupedMessages = groupMessagesByUser(data, user.username);
+        setMessages(groupedMessages);
+      }
+    };
+
+    if (activeTab === 'messages') {
+      messagesRef.on('value', handleSnapshot);
+
+      return () => {
+        messagesRef.off('value', handleSnapshot);
+      };
+    }
+  }, [activeTab, user]);
 
   const fetchFriendRequests = async () => {
     try {
@@ -49,10 +122,6 @@ const MessageScreen = ({navigation}) => {
     }
   };
 
-  useEffect(() => {
-    fetchFriendRequests();
-  }, [user]);
-
   const fetchUserFriends = async () => {
     try {
       const response = await fetch(`${API_URL}/get-friends/${user.user_id}`);
@@ -68,16 +137,8 @@ const MessageScreen = ({navigation}) => {
     }
   };
 
-  useEffect(() => {
-    fetchUserFriends();
-  }, [user]);
-
   const handleTabPress = tab => {
     setActiveTab(tab);
-  };
-
-  const handleChatPress = userName => {
-    navigation.navigate('Chat', {userName});
   };
 
   const handleAcceptFriendRequest = async friendRequestId => {
@@ -110,17 +171,17 @@ const MessageScreen = ({navigation}) => {
     }
   };
 
-  const handleRefresh = async () => {
-    setIsRefreshing(true);
-
-    try {
-      await Promise.all([fetchFriendRequests(), fetchUserFriends()]);
-    } catch (error) {
-      console.error('Error refreshing data:', error);
-    } finally {
-      setIsRefreshing(false);
-    }
+  const handleChatPress = userName => {
+    navigation.navigate('Chat', {userName});
   };
+
+  const handleRefresh = useCallback(async () => {
+    setIsRefreshing(true);
+    await fetchData();
+    renderFriendRequests;
+    renderFriendItem;
+    renderMessageItem;
+  }, [fetchData]);
 
   const handleRejectFriendRequest = async friendRequestId => {
     try {
@@ -164,64 +225,97 @@ const MessageScreen = ({navigation}) => {
   const timestampToAge = timestamp => {
     const age =
       (new Date().getTime() - timestamp) / (1000 * 60 * 60 * 24 * 365);
-
     return Math.floor(age);
   };
 
-  const renderFriendRequests = ({item}) => (
-    <TouchableOpacity
-      style={styles.friendRequestItem}
-      onPress={() => handleFriendRequestPress(item)}>
-      <Image source={avatarMapping[item.avatar]} style={styles.friendAvatar} />
-      <View style={styles.friendRequestInfo}>
-        <Text style={styles.friendRequestName}>{item.fullname}</Text>
-      </View>
-      <View style={styles.friendRequestActions}>
-        <TouchableOpacity
-          style={styles.acceptButton}
-          onPress={() => handleAcceptFriendRequest(item.friend_request_id)}>
-          <Image
-            source={require('../assets/icons/tick.png')}
-            style={styles.actionIcon}
-          />
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.declineButton}
-          onPress={() => handleRejectFriendRequest(item.friend_request_id)}>
-          <Image
-            source={require('../assets/icons/close.png')}
-            style={styles.actionIcon}
-          />
-        </TouchableOpacity>
-      </View>
-    </TouchableOpacity>
+  const renderFriendRequests = useMemo(
+    () =>
+      ({item}) =>
+        (
+          <TouchableOpacity
+            style={styles.friendRequestItem}
+            onPress={() => handleFriendRequestPress(item)}>
+            <Image
+              source={avatarMapping[item.avatar]}
+              style={styles.friendAvatar}
+            />
+            <View style={styles.friendRequestInfo}>
+              <Text style={styles.friendRequestName}>{item.fullname}</Text>
+            </View>
+            <View style={styles.friendRequestActions}>
+              <TouchableOpacity
+                style={styles.acceptButton}
+                onPress={() =>
+                  handleAcceptFriendRequest(item.friend_request_id)
+                }>
+                <Image
+                  source={require('../assets/icons/tick.png')}
+                  style={styles.actionIcon}
+                />
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.declineButton}
+                onPress={() =>
+                  handleRejectFriendRequest(item.friend_request_id)
+                }>
+                <Image
+                  source={require('../assets/icons/close.png')}
+                  style={styles.actionIcon}
+                />
+              </TouchableOpacity>
+            </View>
+          </TouchableOpacity>
+        ),
+    [
+      handleFriendRequestPress,
+      handleAcceptFriendRequest,
+      handleRejectFriendRequest,
+    ],
   );
 
-  const renderFriends = ({item}) => (
-    <TouchableOpacity
-      style={styles.friendItem}
-      onPress={() => handleChatPress(item.fullname)}>
-      <Image source={avatarMapping[item.avatar]} style={styles.friendAvatar} />
-      <Text style={styles.friendName}>{item.fullname}</Text>
-    </TouchableOpacity>
+  const renderFriendItem = useMemo(
+    () =>
+      ({item}) =>
+        (
+          <TouchableOpacity
+            style={styles.friendItem}
+            onPress={() => handleChatPress(item.username)}>
+            <Image
+              source={avatarMapping[item.avatar]}
+              style={styles.friendAvatar}
+            />
+            <Text style={styles.friendName}>{item.fullname}</Text>
+          </TouchableOpacity>
+        ),
+    [handleChatPress],
   );
 
-  const renderMessages = ({item}) => (
-    <TouchableOpacity
-      style={styles.messageItem}
-      onPress={() => handleChatPress(item.name)}>
-      <Text style={styles.messageName}>{item.name}</Text>
-      <Text style={styles.messageText}>{item.lastMessage}</Text>
-      <Text style={styles.messageTime}>{item.time}</Text>
-    </TouchableOpacity>
+  const renderMessageItem = useMemo(
+    () =>
+      ({item}) =>
+        (
+          <TouchableOpacity
+            style={styles.messageItem}
+            onPress={() => handleChatPress(item.user)}>
+            <View style={styles.messageContainer}>
+              <View style={styles.messageContent}>
+                <Text style={styles.friendName}>{item.user}</Text>
+                <Text style={styles.lastMessage}>{item.lastMessage}</Text>
+              </View>
+              <Text style={styles.messageTime}>{item.time}</Text>
+            </View>
+          </TouchableOpacity>
+        ),
+    [handleChatPress],
   );
-  const handleFriendSearch = async () => {
+
+  const handleFriendSearch = useCallback(async () => {
     try {
       const response = await fetch(`${API_URL}/search-user/${friendSearch}`);
       const data = await response.json();
 
       if (response.ok) {
-        Alert.alert('User Found', `User: ${data.user.fullname}`, [
+        Alert.alert('User Found', `User: ${data.user.username}`, [
           {
             text: 'Cancel',
             style: 'cancel',
@@ -236,39 +330,44 @@ const MessageScreen = ({navigation}) => {
       }
     } catch (error) {
       console.error('Error searching for user:', error);
-      Alert.alert('Error', 'Failed to search for user. Please try again.');
+      Alert.alert('Error', 'Failed to search for the user. Please try again.');
     }
-  };
+  }, [friendSearch, user.user_id]);
 
-  const sendFriendRequest = async friendId => {
-    try {
-      const response = await fetch(`${API_URL}/add-friend`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          user_id: user.user_id,
-          friendId,
-        }),
-      });
+  const sendFriendRequest = useCallback(
+    async friendId => {
+      try {
+        const response = await fetch(`${API_URL}/add-friend`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            user_id: user.user_id,
+            friendId,
+          }),
+        });
 
-      const data = await response.json();
+        const data = await response.json();
 
-      if (response.ok) {
+        if (response.ok) {
+          Alert.alert(
+            'Friend Request Sent',
+            'Friend request has been sent successfully.',
+          );
+        } else {
+          Alert.alert('Error', data.message);
+        }
+      } catch (error) {
+        console.error('Error sending a friend request:', error);
         Alert.alert(
-          'Friend Request Sent',
-          'Friend request has been sent successfully.',
+          'Error',
+          'Failed to send a friend request. Please try again.',
         );
-      } else {
-        Alert.alert('Error', data.message);
       }
-    } catch (error) {
-      console.error('Error sending friend request:', error);
-      Alert.alert('Error', 'Failed to send friend request. Please try again.');
-    }
-  };
-
+    },
+    [user.user_id],
+  );
   return (
     <View style={styles.container}>
       <View style={styles.tabBar}>
@@ -302,47 +401,107 @@ const MessageScreen = ({navigation}) => {
 
       <View style={styles.contentContainer}>
         {activeTab === 'messages' ? (
-          <FlatList
-            data={messages}
-            keyExtractor={item => item.id}
-            renderItem={renderMessages}
-          />
+          <ScrollView
+            contentContainerStyle={styles.scrollViewContent}
+            showsVerticalScrollIndicator={false}
+            refreshControl={
+              <RefreshControl
+                refreshing={isRefreshing}
+                onRefresh={handleRefresh}
+              />
+            }>
+            {messages.map(item => (
+              <TouchableOpacity
+                key={item.user}
+                style={styles.messageItem}
+                onPress={() => handleChatPress(item.user)}>
+                <View style={styles.messageContainer}>
+                  <View style={styles.messageContent}>
+                    <Text style={styles.friendName}>{item.user}</Text>
+                    <Text style={styles.lastMessage}>{item.lastMessage}</Text>
+                  </View>
+                  <Text style={styles.messageTime}>{item.time}</Text>
+                </View>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
         ) : (
-          <View>
-            <FlatList
-              data={friendRequests}
-              keyExtractor={item => item.user_id.toString()}
-              renderItem={renderFriendRequests}
-              ListHeaderComponent={() => (
-                <Text style={styles.sectionTitle}>Friend Requests</Text>
-              )}
-              ListEmptyComponent={() => (
+          <ScrollView
+            contentContainerStyle={styles.scrollViewContent}
+            refreshControl={
+              <RefreshControl
+                refreshing={isRefreshing}
+                onRefresh={handleRefresh}
+              />
+            }>
+            <View>
+              <Text style={styles.sectionTitle}>Friend Requests</Text>
+              {friendRequests.map(item => (
+                <TouchableOpacity
+                  key={item.user_id}
+                  style={styles.friendRequestItem}
+                  onPress={() => handleFriendRequestPress(item)}>
+                  <Image
+                    source={avatarMapping[item.avatar]}
+                    style={styles.friendAvatar}
+                  />
+                  <View style={styles.friendRequestInfo}>
+                    <Text style={styles.friendRequestName}>
+                      {item.fullname}
+                    </Text>
+                  </View>
+                  <View style={styles.friendRequestActions}>
+                    <TouchableOpacity
+                      style={styles.acceptButton}
+                      onPress={() =>
+                        handleAcceptFriendRequest(item.friend_request_id)
+                      }>
+                      <Image
+                        source={require('../assets/icons/tick.png')}
+                        style={styles.actionIcon}
+                      />
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={styles.declineButton}
+                      onPress={() =>
+                        handleRejectFriendRequest(item.friend_request_id)
+                      }>
+                      <Image
+                        source={require('../assets/icons/close.png')}
+                        style={styles.actionIcon}
+                      />
+                    </TouchableOpacity>
+                  </View>
+                </TouchableOpacity>
+              ))}
+              {friendRequests.length === 0 && (
                 <Text style={styles.noFriendRequestsText}>
                   You have no friend requests at the moment.
                 </Text>
               )}
-              refreshControl={
-                <RefreshControl
-                  refreshing={isRefreshing}
-                  onRefresh={handleRefresh}
-                />
-              }
-            />
+            </View>
 
-            <FlatList
-              data={userFriends}
-              keyExtractor={item => item.user_id.toString()}
-              renderItem={renderFriends}
-              ListHeaderComponent={() => (
-                <Text style={styles.sectionTitle}>Your Friends</Text>
-              )}
-              ListEmptyComponent={() => (
+            <View>
+              <Text style={styles.sectionTitle}>Your Friends</Text>
+              {userFriends.map(item => (
+                <TouchableOpacity
+                  key={item.user_id}
+                  style={styles.friendItem}
+                  onPress={() => handleChatPress(item.username)}>
+                  <Image
+                    source={avatarMapping[item.avatar]}
+                    style={styles.friendAvatar}
+                  />
+                  <Text style={styles.friendName}>{item.fullname}</Text>
+                </TouchableOpacity>
+              ))}
+              {userFriends.length === 0 && (
                 <Text style={styles.noFriendRequestsText}>
                   You have no friend at the moment.
                 </Text>
               )}
-            />
-          </View>
+            </View>
+          </ScrollView>
         )}
       </View>
 
@@ -362,7 +521,6 @@ const MessageScreen = ({navigation}) => {
             <Text style={styles.userInfo}>{`Age: ${timestampToAge(
               selectedUser?.age,
             )}`}</Text>
-
             <TouchableOpacity style={styles.closeButton} onPress={closeModal}>
               <Text style={styles.closeButtonText}>Close</Text>
             </TouchableOpacity>
@@ -374,8 +532,31 @@ const MessageScreen = ({navigation}) => {
     </View>
   );
 };
-
 const styles = StyleSheet.create({
+  scrollViewContent: {
+    paddingBottom: 20,
+  },
+  messageContainer: {
+    flex: 1,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  messageContent: {
+    flex: 1,
+    marginRight: 10,
+  },
+  lastMessage: {
+    fontSize: 14,
+    color: '#757575',
+    maxWidth: '70%',
+    overflow: 'hidden',
+  },
+  messageTime: {
+    fontSize: 12,
+    color: '#BDBDBD',
+    marginTop: 2,
+  },
   modalContainer: {
     flex: 1,
     justifyContent: 'center',

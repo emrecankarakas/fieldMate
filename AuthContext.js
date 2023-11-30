@@ -1,5 +1,6 @@
 import React, {createContext, useContext, useEffect, useState} from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import messaging from '@react-native-firebase/messaging';
 
 const AuthContext = createContext();
 
@@ -19,7 +20,15 @@ export const AuthProvider = ({children}) => {
     };
 
     loadUser();
-  }, []);
+
+    const unsubscribe = messaging().onTokenRefresh(token => {
+      if (user) {
+        updateUserFCMToken(user, token);
+      }
+    });
+
+    return unsubscribe;
+  }, [user]);
 
   const loginUser = async userData => {
     setUser(userData);
@@ -39,6 +48,12 @@ export const AuthProvider = ({children}) => {
     } catch (error) {
       console.error('Error removing user from AsyncStorage:', error);
     }
+  };
+
+  const updateUserFCMToken = async (currentUser, token) => {
+    console.log(
+      `Updating FCM token for user: ${currentUser.user_id}, FCM Token: ${token}`,
+    );
   };
 
   return (

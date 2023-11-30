@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import axios from 'axios';
 import CustomButton from '../components/CustomButton';
+import messaging from '@react-native-firebase/messaging';
 import {useAuth} from '../AuthContext.js';
 
 const API_URL = 'http://192.168.1.37:5000/users';
@@ -19,6 +20,25 @@ const LoginScreen = ({navigation}) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
+  const fetchData = async () => {
+    try {
+      const authStatus = await messaging().requestPermission();
+      const enabled =
+        authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
+        authStatus === messaging.AuthorizationStatus.PROVISIONAL;
+
+      if (enabled) {
+        console.log('Authorization status:', authStatus);
+      }
+
+      const token = await messaging().getToken();
+      return token;
+    } catch (error) {
+      console.error('Error during data fetching:', error);
+      throw error;
+    }
+  };
+
   const handleLogin = async () => {
     try {
       const response = await axios.post(`${API_URL}/login`, {
@@ -27,7 +47,13 @@ const LoginScreen = ({navigation}) => {
       });
 
       if (response.status === 200) {
-        loginUser(response.data.user); // Kullanıcıyı context'e ekleyin
+        const {user, fcmToken} = response.data;
+
+        const token = await fetchData();
+        loginUser(user);
+
+        await saveFCMToken(user.user_id, token);
+
         navigation.navigate('Home');
       } else {
         alert('Login failed');
@@ -35,6 +61,17 @@ const LoginScreen = ({navigation}) => {
     } catch (error) {
       console.error(error);
       alert('Login failed');
+    }
+  };
+
+  const saveFCMToken = async (userId, token) => {
+    try {
+      await axios.post(`${API_URL}/save-fcm-token`, {
+        user_id: userId,
+        fcm_token: token,
+      });
+    } catch (error) {
+      console.error('Failed to save FCM token:', error);
     }
   };
 

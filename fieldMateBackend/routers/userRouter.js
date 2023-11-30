@@ -36,8 +36,17 @@ async function sendEmail(email, otp) {
 
 router.post('/register', async (req, res) => {
   try {
-    const {email} = req.body;
+    const {email, username} = req.body;
+    console.log(username);
+    console.log(email);
+    const checkUsernameQuery = 'SELECT * FROM users WHERE username = $1';
+    const usernameResult = await postgresClient.query(checkUsernameQuery, [
+      username,
+    ]);
 
+    if (usernameResult.rows.length > 0) {
+      return res.status(400).json({message: 'Username already exists'});
+    }
     const checkEmailQuery = 'SELECT * FROM users WHERE email = $1';
     const emailResult = await postgresClient.query(checkEmailQuery, [email]);
 
@@ -77,11 +86,27 @@ router.post('/register', async (req, res) => {
   }
 });
 
+router.post('/save-fcm-token', async (req, res) => {
+  try {
+    const {user_id, fcm_token} = req.body;
+
+    const saveFCMTokenQuery =
+      'UPDATE users SET fcm_token = $1 WHERE user_id = $2';
+    await postgresClient.query(saveFCMTokenQuery, [fcm_token, user_id]);
+
+    res.status(200).json({message: 'FCM token saved successfully'});
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({message: 'Failed to save FCM token'});
+  }
+});
+
 router.post('/verify-otp', async (req, res) => {
   try {
     console.log('Received OTP verification request:', req.body);
 
-    const {otpEntered, fullname, email, password, role, age, avatar} = req.body;
+    const {otpEntered, fullname, email, password, role, age, avatar, username} =
+      req.body;
 
     const findOTPQuery = 'SELECT * FROM otp WHERE email = $1 AND otp = $2';
     const otpResult = await postgresClient.query(findOTPQuery, [
@@ -93,7 +118,7 @@ router.post('/verify-otp', async (req, res) => {
       const user_id = uuidv4();
 
       const insertQuery =
-        'INSERT INTO users ("user_id", fullname, email, password, role, age, avatar) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *';
+        'INSERT INTO users ("user_id", fullname, email, password, role, age, avatar, username) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *';
 
       const result = await postgresClient.query(insertQuery, [
         user_id,
@@ -103,6 +128,7 @@ router.post('/verify-otp', async (req, res) => {
         role,
         age,
         avatar,
+        username,
       ]);
 
       const deleteOTPQuery = 'DELETE FROM otp WHERE email = $1';
@@ -200,7 +226,8 @@ router.get('/get-friends/:user_id', async (req, res) => {
     const user_id = req.params.user_id;
 
     const getFriendsQuery =
-      'SELECT users.user_id, users.fullname, users.email, users.role, users.age ,users.avatar FROM users INNER JOIN friendships ON users.user_id = friendships.friend_id WHERE friendships.user_id = $1';
+      'SELECT users.user_id, users.fullname, users.username, users.email, users.role, users.age ,users.avatar FROM users INNER JOIN friendships ON users.user_id = friendships.friend_id WHERE friendships.user_id = $1';
+
     const friendsResult = await postgresClient.query(getFriendsQuery, [
       user_id,
     ]);
@@ -217,7 +244,8 @@ router.get('/get-friend-requests/:user_id', async (req, res) => {
     const user_id = req.params.user_id;
 
     const getFriendRequestsQuery =
-      'SELECT   friend_requests.request_id as friend_request_id,   users.user_id,  users.fullname, users.email,   users.role,  users.age,users.avatar  FROM  users INNER JOIN friend_requests ON users.user_id = friend_requests.sender_id WHERE friend_requests.receiver_id = $1   ';
+      'SELECT friend_requests.request_id as friend_request_id, users.user_id, users.fullname, users.username, users.email, users.role, users.age,users.avatar FROM users INNER JOIN friend_requests ON users.user_id = friend_requests.sender_id WHERE friend_requests.receiver_id = $1';
+
     const friendRequestsResult = await postgresClient.query(
       getFriendRequestsQuery,
       [user_id],
@@ -268,13 +296,24 @@ router.get('/search-user/:username', async (req, res) => {
     const {username} = req.params;
 
     const searchUserQuery =
-      'SELECT user_id, fullname, email, role, age FROM users WHERE fullname ILIKE $1';
+      'SELECT user_id, fullname, email, role, age, username, avatar FROM users WHERE username ILIKE $1';
     const searchUserResult = await postgresClient.query(searchUserQuery, [
       `%${username}%`,
     ]);
 
     if (searchUserResult.rows.length > 0) {
-      res.status(200).json({user: searchUserResult.rows[0]});
+      const user = searchUserResult.rows[0];
+      res.status(200).json({
+        user: {
+          user_id: user.user_id,
+          fullname: user.fullname,
+          email: user.email,
+          role: user.role,
+          age: user.age,
+          username: user.username,
+          avatar: user.avatar,
+        },
+      });
     } else {
       res.status(404).json({message: 'User not found'});
     }

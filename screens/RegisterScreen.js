@@ -43,6 +43,7 @@ const RegisterScreen = ({navigation}) => {
   const [selectedRole, setSelectedRole] = useState(null);
   const [open, setOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState(null);
+  const [username, setUsername] = useState('');
 
   const handleDateSelect = date => {
     setSelectedDate(date);
@@ -60,15 +61,16 @@ const RegisterScreen = ({navigation}) => {
       !password ||
       !selectedAvatar ||
       !selectedRole ||
-      !selectedDate
+      !selectedDate ||
+      !username
     ) {
       alert('Please fill in all the required fields.');
       return;
     }
-
     try {
       const response = await axios.post(`${API_URL}/register`, {
         email,
+        username,
       });
 
       if (response.status === 200) {
@@ -79,13 +81,16 @@ const RegisterScreen = ({navigation}) => {
           avatar: selectedAvatar.name,
           role: selectedRole,
           age: selectedDate,
+          username,
         });
       } else {
         alert('Registration failed.');
       }
     } catch (error) {
       console.error(error);
-      alert('Registration failed.');
+      const response = error.response;
+      alert(response.data.message);
+      console.log('Full error object:', error);
     }
   };
 
@@ -113,7 +118,11 @@ const RegisterScreen = ({navigation}) => {
         placeholder="Full Name"
         onChangeText={text => setFullname(text)}
       />
-
+      <TextInput
+        style={styles.input}
+        placeholder="Username"
+        onChangeText={text => setUsername(text)}
+      />
       <TextInput
         style={styles.input}
         placeholder="E-mail"

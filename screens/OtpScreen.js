@@ -12,7 +12,7 @@ import axios from 'axios';
 const API_URL = 'http://192.168.1.37:5000/users';
 
 const OtpScreen = ({navigation, route}) => {
-  const {fullname, email, password, avatar, role, age} = route.params;
+  const {fullname, email, password, avatar, role, age, username} = route.params;
   const [otp, setOtp] = useState(['', '', '', '']);
   const otpInputs = useRef([]);
   const [resendTimer, setResendTimer] = useState(0);
@@ -27,6 +27,7 @@ const OtpScreen = ({navigation, route}) => {
         role,
         age,
         email,
+        username,
         otpEntered: otp.join(''),
       });
 
@@ -173,14 +174,14 @@ const styles = StyleSheet.create({
   otpContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
+    marginTop: '15%',
   },
   input: {
     backgroundColor: '#D9D9D9',
-    width: 65,
+    flex: 1,
     height: 65,
     padding: 10,
-    marginTop: 50,
-    marginHorizontal: 10.5,
+    marginHorizontal: '2%',
     borderRadius: 10,
     textAlign: 'center',
   },

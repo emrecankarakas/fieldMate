@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "545939126845",
+    "firebase_url": "https://fieldmate-a1554-default-rtdb.firebaseio.com",
+    "project_id": "fieldmate-a1554",
+    "storage_bucket": "fieldmate-a1554.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:545939126845:android:3b31872654db01e5028854",
+        "android_client_info": {
+          "package_name": "com.fieldmate"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCjUI9iWimXLbLEz-_y0z2QN4UJuGhVCZM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
