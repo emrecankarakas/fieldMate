@@ -37,8 +37,6 @@ async function sendEmail(email, otp) {
 router.post('/register', async (req, res) => {
   try {
     const {email, username} = req.body;
-    console.log(username);
-    console.log(email);
     const checkUsernameQuery = 'SELECT * FROM users WHERE username = $1';
     const usernameResult = await postgresClient.query(checkUsernameQuery, [
       username,
@@ -167,6 +165,25 @@ router.post('/login', async (req, res) => {
     res.status(500).json({message: 'login failed'});
   }
 });
+router.get('/get-user/:user_id', async (req, res) => {
+  try {
+    const userId = req.params.user_id;
+
+    const getUserQuery = 'SELECT * FROM users WHERE user_id = $1';
+
+    const userResult = await postgresClient.query(getUserQuery, [userId]);
+
+    if (userResult.rows.length === 0) {
+      return res.status(404).json({message: 'User not found'});
+    }
+
+    const user = userResult.rows[0];
+    res.status(200).json({user});
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({message: 'Failed to get user information'});
+  }
+});
 
 router.post('/add-friend', async (req, res) => {
   try {
@@ -220,13 +237,53 @@ router.post('/add-friend', async (req, res) => {
     res.status(500).json({message: 'Failed to send friend request.'});
   }
 });
+router.post('/reject-friend-request', async (req, res) => {
+  try {
+    const {user_id, friendRequestId} = req.body;
+
+    const getFriendRequestQuery =
+      'SELECT * FROM friend_requests WHERE request_id = $1';
+    const friendRequestResult = await postgresClient.query(
+      getFriendRequestQuery,
+      [friendRequestId],
+    );
+
+    if (friendRequestResult.rows.length === 0) {
+      return res.status(400).json({message: 'Friend request not found.'});
+    }
+
+    const deleteFriendRequestQuery =
+      'DELETE FROM friend_requests WHERE request_id = $1';
+    await postgresClient.query(deleteFriendRequestQuery, [friendRequestId]);
+
+    res.status(200).json({message: 'Friend request rejected.'});
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({message: 'Failed to reject friend request.'});
+  }
+});
+
+router.post('/remove-friend', async (req, res) => {
+  try {
+    const {user_id, friendId} = req.body;
+
+    const deleteFriendshipQuery =
+      'DELETE FROM friendships WHERE (user_id = $1 AND friend_id = $2) OR (user_id = $2 AND friend_id = $1)';
+    await postgresClient.query(deleteFriendshipQuery, [user_id, friendId]);
+
+    res.status(200).json({message: 'Friend removed successfully'});
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({message: 'Failed to remove friend'});
+  }
+});
 
 router.get('/get-friends/:user_id', async (req, res) => {
   try {
     const user_id = req.params.user_id;
 
     const getFriendsQuery =
-      'SELECT users.user_id, users.fullname, users.username, users.email, users.role, users.age ,users.avatar FROM users INNER JOIN friendships ON users.user_id = friendships.friend_id WHERE friendships.user_id = $1';
+      'SELECT users.user_id, users.fullname, users.username, users.email, users.role, users.age ,users.avatar, users.team FROM users INNER JOIN friendships ON users.user_id = friendships.friend_id WHERE friendships.user_id = $1';
 
     const friendsResult = await postgresClient.query(getFriendsQuery, [
       user_id,
@@ -302,25 +359,265 @@ router.get('/search-user/:username', async (req, res) => {
     ]);
 
     if (searchUserResult.rows.length > 0) {
-      const user = searchUserResult.rows[0];
+      const users = searchUserResult.rows.map(user => ({
+        user_id: user.user_id,
+        fullname: user.fullname,
+        email: user.email,
+        role: user.role,
+        age: user.age,
+        username: user.username,
+        avatar: user.avatar,
+      }));
+
       res.status(200).json({
-        user: {
-          user_id: user.user_id,
-          fullname: user.fullname,
-          email: user.email,
-          role: user.role,
-          age: user.age,
-          username: user.username,
-          avatar: user.avatar,
-        },
+        users: users,
       });
     } else {
-      res.status(404).json({message: 'User not found'});
+      res.status(404).json({message: 'No users found'});
     }
   } catch (error) {
-    console.error(error);
-    res.status(500).json({message: 'Failed to search for user'});
+    console.error('Error in search-user endpoint:', error);
+    res.status(500).json({message: 'Failed to search for users'});
   }
 });
 
+router.post('/update-team-player/:teamId/:role', async (req, res) => {
+  try {
+    const teamId = req.params.teamId;
+    const role = req.params.role;
+    const {updatedPlayer, captainName} = req.body;
+
+    if (!updatedPlayer || typeof updatedPlayer !== 'object') {
+      return res.status(400).json({message: 'Invalid input for updatedPlayer'});
+    }
+
+    const updatePlayerQuery = `
+      UPDATE teams
+      SET players = jsonb_set(players, '{${role}}', $1)
+      WHERE team_id = $2
+    `;
+    await postgresClient.query(updatePlayerQuery, [
+      JSON.stringify(updatedPlayer),
+      teamId,
+    ]);
+
+    const sendRequestQuery =
+      'INSERT INTO team_requests (team_id, sender_id, receiver_id, role, captain_name) VALUES ($1, $2, $3, $4, $5)';
+    await postgresClient.query(sendRequestQuery, [
+      teamId,
+      updatedPlayer.user_id,
+      updatedPlayer.user_id,
+      role,
+      captainName,
+    ]);
+
+    res
+      .status(200)
+      .json({message: `Team player with role ${role} updated successfully`});
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({message: 'Failed to update team player'});
+  }
+});
+
+router.post('/create-team', async (req, res) => {
+  try {
+    const {teamName, captainId, selectedPlayers, captainName} = req.body;
+
+    const createTeamQuery =
+      'INSERT INTO teams (team_name, captain_id, players) VALUES ($1, $2, $3) RETURNING *';
+    const teamResult = await postgresClient.query(createTeamQuery, [
+      teamName,
+      captainId,
+      {
+        ...selectedPlayers,
+      },
+    ]);
+
+    const teamId = teamResult.rows[0].team_id;
+
+    const updateUserTeamQuery = `
+      UPDATE users
+      SET team = $1
+      WHERE user_id = $2;
+    `;
+
+    await postgresClient.query(updateUserTeamQuery, [teamId, captainId]);
+    const sendTeamRequests = async () => {
+      const sendRequestQuery =
+        'INSERT INTO team_requests (team_id, sender_id, receiver_id, role, captain_name) VALUES ($1, $2, $3, $4, $5)';
+
+      for (const role in selectedPlayers) {
+        const player = selectedPlayers[role];
+
+        if (player && player.user_id !== captainId) {
+          await postgresClient.query(sendRequestQuery, [
+            teamId,
+            captainId,
+            player.user_id,
+            role,
+            captainName,
+          ]);
+        }
+      }
+    };
+
+    await sendTeamRequests();
+
+    res.status(201).json({
+      message: 'Team created successfully',
+      team: {
+        team_id: teamId,
+        team_name: teamName,
+        captain_id: captainId,
+        players: selectedPlayers,
+      },
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({message: 'Failed to create team'});
+  }
+});
+
+router.post('/accept-team-request', async (req, res) => {
+  try {
+    const {user_id, requestId} = req.body;
+
+    const getTeamIdQuery =
+      'SELECT team_id, role FROM team_requests WHERE request_id = $1';
+    const teamIdResult = await postgresClient.query(getTeamIdQuery, [
+      requestId,
+    ]);
+
+    const teamId = teamIdResult.rows[0].team_id;
+    const role = teamIdResult.rows[0].role;
+
+    const deleteRequestQuery =
+      'DELETE FROM team_requests WHERE request_id = $1';
+    await postgresClient.query(deleteRequestQuery, [requestId]);
+
+    const updatePlayerStatusQuery = `
+      UPDATE teams
+      SET players = jsonb_set(players, '{${role}, status}', '"active"')
+      WHERE team_id = $1;
+    `;
+
+    await postgresClient.query(updatePlayerStatusQuery, [teamId]);
+
+    const updateUserTeamQuery = `
+      UPDATE users
+      SET team = $1
+      WHERE user_id = $2;
+    `;
+
+    await postgresClient.query(updateUserTeamQuery, [teamId, user_id]);
+
+    res.status(200).json({message: 'Team request accepted.'});
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({message: 'Failed to accept team request.'});
+  }
+});
+router.post('/remove-team-player', async (req, res) => {
+  try {
+    const {teamId, role} = req.body;
+
+    const updatePlayersQuery = `
+      UPDATE teams
+      SET players = jsonb_set(players, '{${role}}', 'null')
+      WHERE team_id = $1;
+    `;
+    await postgresClient.query(updatePlayersQuery, [teamId]);
+
+    res
+      .status(200)
+      .json({message: 'Player removed from the team successfully.'});
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({message: 'Failed to remove player from the team.'});
+  }
+});
+
+router.post('/reject-team-request', async (req, res) => {
+  try {
+    const {receiver_id, team_id, role} = req.body;
+
+    const deleteRequestQuery =
+      'DELETE FROM team_requests WHERE receiver_id = $1 AND team_id = $2 AND role = $3';
+    await postgresClient.query(deleteRequestQuery, [
+      receiver_id,
+      team_id,
+      role,
+    ]);
+
+    const updatePlayersQuery = `
+      UPDATE teams
+      SET players = jsonb_set(players, '{${role}}', 'null')
+      WHERE team_id = $1 AND '${role}' IS NOT NULL;
+    `;
+    await postgresClient.query(updatePlayersQuery, [team_id]);
+
+    res.status(200).json({message: 'Team request rejected.'});
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({message: 'Failed to reject team request.'});
+  }
+});
+
+router.get('/get-team-requests/:user_id', async (req, res) => {
+  try {
+    const userId = req.params.user_id;
+
+    const getTeamRequestsQuery =
+      'SELECT tr.*,t.team_name,t.captain_id FROM team_requests tr JOIN teams t ON tr.team_id = t.team_id WHERE tr.receiver_id = $1;';
+
+    const teamRequestsResult = await postgresClient.query(
+      getTeamRequestsQuery,
+      [userId],
+    );
+
+    res.status(200).json({teamRequests: teamRequestsResult.rows});
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({message: 'Failed to get team requests.'});
+  }
+});
+router.post('/update-captain/:teamId', async (req, res) => {
+  try {
+    const teamId = req.params.teamId;
+    const {newCaptainId} = req.body;
+
+    const updateCaptainQuery = `
+      UPDATE teams
+      SET captain_id = $1
+      WHERE team_id = $2
+    `;
+    await postgresClient.query(updateCaptainQuery, [newCaptainId, teamId]);
+
+    res.status(200).json({message: 'Captain updated successfully'});
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({message: 'Failed to update captain'});
+  }
+});
+
+router.get('/get-team/:teamId', async (req, res) => {
+  try {
+    const teamId = req.params.teamId;
+
+    const getTeamQuery = 'SELECT * FROM teams WHERE team_id = $1';
+
+    const teamResult = await postgresClient.query(getTeamQuery, [teamId]);
+
+    if (teamResult.rows.length === 0) {
+      return res.status(404).json({message: 'Team not found'});
+    }
+
+    const team = teamResult.rows[0];
+    res.status(200).json({team});
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({message: 'Failed to get team information'});
+  }
+});
 export default router;

@@ -39,12 +39,21 @@ export const AuthProvider = ({children}) => {
       console.error('Error saving user to AsyncStorage:', error);
     }
   };
-
-  const logoutUser = async () => {
-    setUser(null);
+  const updateUser = async updatedUserData => {
+    console.log('Updating user data:', updatedUserData);
+    setUser(updatedUserData);
 
     try {
+      await AsyncStorage.setItem('user', JSON.stringify(updatedUserData));
+    } catch (error) {
+      console.error('Error updating user data in AsyncStorage:', error);
+    }
+  };
+  const logoutUser = async () => {
+    try {
       await AsyncStorage.removeItem('user');
+
+      setUser(null);
     } catch (error) {
       console.error('Error removing user from AsyncStorage:', error);
     }
@@ -57,7 +66,7 @@ export const AuthProvider = ({children}) => {
   };
 
   return (
-    <AuthContext.Provider value={{user, loginUser, logoutUser}}>
+    <AuthContext.Provider value={{user, loginUser, logoutUser, updateUser}}>
       {children}
     </AuthContext.Provider>
   );

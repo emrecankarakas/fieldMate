@@ -36,7 +36,7 @@ const ChatScreen = ({route}) => {
           timestamp: Date.now(),
         };
 
-        await messagesRef.push(newMessageData);
+        messagesRef.push(newMessageData);
 
         setNewMessage('');
       } else {

@@ -38,7 +38,9 @@ const BottomMenu = () => {
           </TouchableOpacity>
         </View>
       </View>
-      <TouchableOpacity style={styles.circle} onPress={''}>
+      <TouchableOpacity
+        style={styles.circle}
+        onPress={() => handlePress('TeamManagement')}>
         <Image
           source={require('../assets/icons/people.png')}
           style={styles.icon2}

@@ -16,7 +16,7 @@ import avatarMapping from '../assets/avatars/avatarMapping';
 import BottomMenu from '../components/BottomMenu';
 import database from '@react-native-firebase/database';
 
-const API_URL = 'http://192.168.1.37:5000/users';
+const API_URL = 'http://192.168.1.44:5000/users';
 
 const MessageScreen = ({navigation}) => {
   const [activeTab, setActiveTab] = useState('messages');
@@ -27,6 +27,9 @@ const MessageScreen = ({navigation}) => {
   const [selectedUser, setSelectedUser] = useState(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [messages, setMessages] = useState([]);
+  const [searchResultModalVisible, setSearchResultModalVisible] =
+    useState(false);
+  const [searchResults, setSearchResults] = useState([]);
   const {user} = useAuth();
 
   const groupMessagesByUser = (messagesData, currentUsername) => {
@@ -141,6 +144,32 @@ const MessageScreen = ({navigation}) => {
     setActiveTab(tab);
   };
 
+  const handleRemoveFriend = async friendId => {
+    try {
+      const response = await fetch(`${API_URL}/remove-friend`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          user_id: user.user_id,
+          friendId,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        Alert.alert('Friend Removed', data.message);
+        await fetchUserFriends();
+      } else {
+        Alert.alert('Error', data.message);
+      }
+    } catch (error) {
+      console.error('Error removing friend:', error);
+      Alert.alert('Error', 'Failed to remove friend. Please try again.');
+    }
+  };
   const handleAcceptFriendRequest = async friendRequestId => {
     try {
       const response = await fetch(`${API_URL}/accept-friend-request`, {
@@ -158,7 +187,8 @@ const MessageScreen = ({navigation}) => {
 
       if (response.ok) {
         Alert.alert('Friend Request Accepted', data.message);
-        fetchFriendRequests();
+        await fetchFriendRequests();
+        await fetchUserFriends();
       } else {
         Alert.alert('Error', data.message);
       }
@@ -178,9 +208,6 @@ const MessageScreen = ({navigation}) => {
   const handleRefresh = useCallback(async () => {
     setIsRefreshing(true);
     await fetchData();
-    renderFriendRequests;
-    renderFriendItem;
-    renderMessageItem;
   }, [fetchData]);
 
   const handleRejectFriendRequest = async friendRequestId => {
@@ -200,7 +227,8 @@ const MessageScreen = ({navigation}) => {
 
       if (response.ok) {
         Alert.alert('Friend Request Rejected', data.message);
-        fetchFriendRequests();
+        await fetchFriendRequests();
+        await fetchUserFriends();
       } else {
         Alert.alert('Error', data.message);
       }
@@ -228,103 +256,14 @@ const MessageScreen = ({navigation}) => {
     return Math.floor(age);
   };
 
-  const renderFriendRequests = useMemo(
-    () =>
-      ({item}) =>
-        (
-          <TouchableOpacity
-            style={styles.friendRequestItem}
-            onPress={() => handleFriendRequestPress(item)}>
-            <Image
-              source={avatarMapping[item.avatar]}
-              style={styles.friendAvatar}
-            />
-            <View style={styles.friendRequestInfo}>
-              <Text style={styles.friendRequestName}>{item.fullname}</Text>
-            </View>
-            <View style={styles.friendRequestActions}>
-              <TouchableOpacity
-                style={styles.acceptButton}
-                onPress={() =>
-                  handleAcceptFriendRequest(item.friend_request_id)
-                }>
-                <Image
-                  source={require('../assets/icons/tick.png')}
-                  style={styles.actionIcon}
-                />
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.declineButton}
-                onPress={() =>
-                  handleRejectFriendRequest(item.friend_request_id)
-                }>
-                <Image
-                  source={require('../assets/icons/close.png')}
-                  style={styles.actionIcon}
-                />
-              </TouchableOpacity>
-            </View>
-          </TouchableOpacity>
-        ),
-    [
-      handleFriendRequestPress,
-      handleAcceptFriendRequest,
-      handleRejectFriendRequest,
-    ],
-  );
-
-  const renderFriendItem = useMemo(
-    () =>
-      ({item}) =>
-        (
-          <TouchableOpacity
-            style={styles.friendItem}
-            onPress={() => handleChatPress(item.username)}>
-            <Image
-              source={avatarMapping[item.avatar]}
-              style={styles.friendAvatar}
-            />
-            <Text style={styles.friendName}>{item.fullname}</Text>
-          </TouchableOpacity>
-        ),
-    [handleChatPress],
-  );
-
-  const renderMessageItem = useMemo(
-    () =>
-      ({item}) =>
-        (
-          <TouchableOpacity
-            style={styles.messageItem}
-            onPress={() => handleChatPress(item.user)}>
-            <View style={styles.messageContainer}>
-              <View style={styles.messageContent}>
-                <Text style={styles.friendName}>{item.user}</Text>
-                <Text style={styles.lastMessage}>{item.lastMessage}</Text>
-              </View>
-              <Text style={styles.messageTime}>{item.time}</Text>
-            </View>
-          </TouchableOpacity>
-        ),
-    [handleChatPress],
-  );
-
   const handleFriendSearch = useCallback(async () => {
     try {
       const response = await fetch(`${API_URL}/search-user/${friendSearch}`);
       const data = await response.json();
 
       if (response.ok) {
-        Alert.alert('User Found', `User: ${data.user.username}`, [
-          {
-            text: 'Cancel',
-            style: 'cancel',
-          },
-          {
-            text: 'Add Friend',
-            onPress: () => sendFriendRequest(data.user.user_id),
-          },
-        ]);
+        setSearchResults(data.users);
+        setSearchResultModalVisible(true);
       } else {
         Alert.alert('User Not Found', 'No user found with that name.');
       }
@@ -334,6 +273,32 @@ const MessageScreen = ({navigation}) => {
     }
   }, [friendSearch, user.user_id]);
 
+  const closeModal2 = () => {
+    setSearchResultModalVisible(false);
+  };
+
+  const renderUserList = () => {
+    return searchResults.map(item => (
+      <TouchableOpacity
+        key={item.user_id}
+        style={styles.modalUserItem}
+        onPress={() => handleFriendRequestPress(item)}>
+        <Image
+          source={avatarMapping[item.avatar]}
+          style={styles.modalUserAvatar}
+        />
+        <Text style={styles.modalUserName}>{item.fullname}</Text>
+        <TouchableOpacity
+          style={styles.addFriendButton}
+          onPress={() => sendFriendRequest(item.user_id)}>
+          <Image
+            style={styles.icon}
+            source={require('../assets/icons/add-user.png')}
+          />
+        </TouchableOpacity>
+      </TouchableOpacity>
+    ));
+  };
   const sendFriendRequest = useCallback(
     async friendId => {
       try {
@@ -493,6 +458,20 @@ const MessageScreen = ({navigation}) => {
                     style={styles.friendAvatar}
                   />
                   <Text style={styles.friendName}>{item.fullname}</Text>
+
+                  <TouchableOpacity
+                    style={styles.removeFriendButton}
+                    onPress={() => handleRemoveFriend(item.user_id)}>
+                    <Text style={styles.removeFriendButtonText}>X</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.showFriendButton}
+                    onPress={() => handleFriendRequestPress(item)}>
+                    <Image
+                      style={styles.icon}
+                      source={require('../assets/icons/user.png')}
+                    />
+                  </TouchableOpacity>
                 </TouchableOpacity>
               ))}
               {userFriends.length === 0 && (
@@ -504,6 +483,22 @@ const MessageScreen = ({navigation}) => {
           </ScrollView>
         )}
       </View>
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={searchResultModalVisible}
+        onRequestClose={closeModal}>
+        <View style={styles.modalContainer}>
+          <ScrollView style={styles.modalContent}>
+            {renderUserList()}
+          </ScrollView>
+          <TouchableOpacity
+            style={styles.closeModalButton}
+            onPress={closeModal2}>
+            <Text style={styles.closeModalButtonText}>Close</Text>
+          </TouchableOpacity>
+        </View>
+      </Modal>
 
       <Modal
         animationType="fade"
@@ -533,6 +528,41 @@ const MessageScreen = ({navigation}) => {
   );
 };
 const styles = StyleSheet.create({
+  modalContent: {
+    backgroundColor: '#FFFFFF',
+    maxHeight: 250,
+    width: '80%',
+    borderRadius: 10,
+    paddingLeft: 10,
+    paddingRight: 10,
+  },
+  modalUserItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E0E0E0',
+  },
+  modalUserName: {
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
+  closeModalButton: {
+    backgroundColor: '#0E1E5B',
+    padding: 10,
+    borderRadius: 5,
+    marginTop: 10,
+  },
+  closeModalButtonText: {
+    color: '#FFFFFF',
+    fontWeight: 'bold',
+  },
+  modalUserAvatar: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+  },
+
   scrollViewContent: {
     paddingBottom: 20,
   },
@@ -557,12 +587,14 @@ const styles = StyleSheet.create({
     color: '#BDBDBD',
     marginTop: 2,
   },
+
   modalContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
+
   userInfoModal: {
     backgroundColor: '#FFFFFF',
     padding: 20,
@@ -699,6 +731,44 @@ const styles = StyleSheet.create({
   friendName: {
     fontWeight: 'bold',
     fontSize: 16,
+  },
+  removeFriendButton: {
+    marginLeft: 'auto',
+    backgroundColor: 'red',
+    borderRadius: 40,
+    width: 30,
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 30,
+  },
+  addFriendButton: {
+    marginLeft: 'auto',
+    backgroundColor: '#0E1E5B',
+    borderRadius: 40,
+    marginRight: 10,
+    width: 30,
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 30,
+  },
+  showFriendButton: {
+    backgroundColor: '#0E1E5B',
+    marginLeft: 10,
+    borderRadius: 40,
+    width: 30,
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 30,
+  },
+  removeFriendButtonText: {
+    color: 'white',
+    fontWeight: 'bold',
+    fontSize: 18,
+  },
+  icon: {
+    width: 18,
+    height: 18,
+    tintColor: 'white',
   },
   searchContainer: {
     flexDirection: 'row',

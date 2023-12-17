@@ -15,7 +15,7 @@ import AvatarSelection from '../components/AvatarSelection';
 import AgePicker from '../components/AgePicker';
 import DropDownPicker from 'react-native-dropdown-picker';
 
-const API_URL = 'http://192.168.1.37:5000/users';
+const API_URL = 'http://192.168.1.44:5000/users';
 
 const avatarOptions = [
   {name: 'avatar1', image: require('../assets/avatars/avatar1.png')},

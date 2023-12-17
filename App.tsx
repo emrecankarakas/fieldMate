@@ -11,7 +11,7 @@ import ProfileScreen from './screens/ProfileScreen';
 import MessageScreen from './screens/MessageScreen';
 import messaging from '@react-native-firebase/messaging';
 import ChatScreen from './screens/ChatScreen';
-
+import TeamManagementScreen from './screens/TeamManagementScreen';
 const Stack = createStackNavigator();
 
 const App = () => {
@@ -107,6 +107,11 @@ const AppNavigator = () => {
           <Stack.Screen
             name="Chat"
             component={ChatScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="TeamManagement"
+            component={TeamManagementScreen}
             options={{ headerShown: false }}
           />
         </>
