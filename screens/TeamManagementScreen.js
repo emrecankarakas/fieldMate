@@ -13,18 +13,17 @@ import {
 import {useAuth} from '../AuthContext';
 import avatarMapping from '../assets/avatars/avatarMapping';
 import BottomMenu from '../components/BottomMenu';
-
+import {useNavigation} from '@react-navigation/native';
+import TeamChatScreen from './TeamChatScreen';
 const TeamManagementScreen = () => {
   const [activeTab, setActiveTab] = useState('team');
-  const {loginUser} = useAuth();
   const [teamName, setTeamName] = useState('');
   const [friends, setFriends] = useState([]);
   const [teamRequests, setTeamRequests] = useState([]);
   const [userTeam, setUserTeam] = useState(null);
-  const [selectedPlayer, setSelectedPlayer] = useState(null);
   const [userInfoModalVisible, setUserInfoModalVisible] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
-
+  const navigation = useNavigation();
   const [selectedPlayers, setSelectedPlayers] = useState({
     GK: null,
     CB1: null,
@@ -37,7 +36,11 @@ const TeamManagementScreen = () => {
   const [selectedRole, setSelectedRole] = useState(null);
 
   const {updateUser, user} = useAuth();
-  const API_URL = 'http://192.168.1.44:5000/users';
+  const API_URL = 'http://192.168.1.46:5000/users';
+
+  const handleTeamChatNavigation = () => {
+    navigation.navigate('TeamChat');
+  };
 
   const fetchTeamRequests = async () => {
     try {
@@ -56,17 +59,19 @@ const TeamManagementScreen = () => {
     }
   };
   const fetchUserTeam = async () => {
-    try {
-      const response = await fetch(`${API_URL}/get-team/${user.team}`);
-      const data = await response.json();
+    if (user.team) {
+      try {
+        const response = await fetch(`${API_URL}/get-team/${user.team}`);
+        const data = await response.json();
 
-      if (response.ok) {
-        setUserTeam(data.team);
-      } else {
-        console.log('Failed to fetch user team:', data);
+        if (response.ok) {
+          setUserTeam(data.team);
+        } else {
+          console.log('Failed to fetch user team:', data);
+        }
+      } catch (error) {
+        console.log('Error fetching user team:', error);
       }
-    } catch (error) {
-      console.log('Error fetching user team:', error);
     }
   };
 
@@ -99,7 +104,7 @@ const TeamManagementScreen = () => {
     fetchTeamRequests();
     fetchFriends();
     fetchUserTeam();
-  }, []);
+  }, [user.team]);
 
   const handleCreateTeam = async () => {
     if (!teamName.trim()) {
@@ -168,6 +173,45 @@ const TeamManagementScreen = () => {
     setSelectedRole(null);
   };
 
+  const handleLeaveTeam = async selectedUser => {
+    if (selectedUser.user_id === userTeam.captain_id) {
+      Alert.alert(
+        'Before you leave the team, you have to give the captaincy to someone else.',
+      );
+    } else {
+      const role = findRoleForUser(userTeam.players, selectedUser);
+      const response = await fetch(`${API_URL}/remove-team-player`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          teamId: user.team,
+          role,
+          userId: selectedUser.user_id,
+        }),
+      });
+
+      if (response.ok) {
+        const updatedUserResponse = await fetch(
+          `${API_URL}/get-user/${user.user_id}`,
+        );
+        const updatedUserData = await updatedUserResponse.json();
+        if (updatedUserResponse.ok) {
+          console.log('Player removed from the team successfully');
+          updateUser(updatedUserData.user);
+          fetchUserTeam();
+        }
+
+        fetchUserTeam();
+      } else {
+        console.error(
+          'Failed to remove player from the team:',
+          response.statusText,
+        );
+      }
+    }
+  };
   const handleFriendSelect = friend => {
     if (selectedPlayers[selectedRole]) {
       Alert.alert(
@@ -287,26 +331,32 @@ const TeamManagementScreen = () => {
       console.error('Error:', error);
     }
   };
-  const handlePromoteCaptain = async (teamId, newCaptainId) => {
-    try {
-      const response = await fetch(`${API_URL}/update-captain/${teamId}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({newCaptainId}),
-      });
+  const handlePromoteCaptain = async (teamId, newCaptain) => {
+    if (newCaptain.status === 'active') {
+      const newCaptainId = newCaptain.user_id;
+      try {
+        const response = await fetch(`${API_URL}/update-captain/${teamId}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({newCaptainId}),
+        });
 
-      const data = await response.json();
+        const data = await response.json();
 
-      if (response.ok) {
-        console.log('Captain updated successfully');
-        fetchUserTeam();
-      } else {
-        console.error('Failed to update captain:', data.message);
+        if (response.ok) {
+          console.log('Captain updated successfully');
+          closeModal();
+          fetchUserTeam();
+        } else {
+          console.error('Failed to update captain:', data.message);
+        }
+      } catch (error) {
+        console.error('Error updating captain:', error);
       }
-    } catch (error) {
-      console.error('Error updating captain:', error);
+    } else {
+      Alert.alert('User cannot become captain without joining the team.');
     }
   };
 
@@ -408,6 +458,7 @@ const TeamManagementScreen = () => {
 
         if (response.ok) {
           console.log('Team request rejected successfully');
+          closeModal();
           fetchUserTeam();
         } else {
           console.error('Failed to reject team request:', response.statusText);
@@ -421,11 +472,14 @@ const TeamManagementScreen = () => {
           body: JSON.stringify({
             teamId: teamId,
             role,
+            userId: selectedUser.user_id,
           }),
         });
 
         if (response.ok) {
           console.log('Player removed from the team successfully');
+          closeModal();
+          fetchUserTeam();
         } else {
           console.error(
             'Failed to remove player from the team:',
@@ -462,6 +516,7 @@ const TeamManagementScreen = () => {
           `${API_URL}/get-user/${user.user_id}`,
         );
         const updatedUserData = await updatedUserResponse.json();
+        fetchUserTeam();
 
         if (updatedUserResponse.ok) {
           updateUser(updatedUserData.user);
@@ -536,6 +591,16 @@ const TeamManagementScreen = () => {
           onPress={() => setActiveTab('createTeam')}>
           <Text style={styles.tabText}>Create Team</Text>
         </TouchableOpacity>
+        {userTeam && (
+          <TouchableOpacity
+            style={[
+              styles.tabItem,
+              activeTab === 'teamChat' && styles.activeTab,
+            ]}
+            onPress={() => setActiveTab('teamChat')}>
+            <Text style={styles.tabText}>Team Chat</Text>
+          </TouchableOpacity>
+        )}
       </View>
       {activeTab === 'team' && (
         <View style={styles.teamContainer}>
@@ -651,9 +716,16 @@ const TeamManagementScreen = () => {
                   </View>
                 </View>
               )}
+              <TouchableOpacity
+                style={styles.leaveTeamButton}
+                onPress={() => handleLeaveTeam(user)}>
+                <Text style={styles.createTeamButtonText}>Leave Team</Text>
+              </TouchableOpacity>
             </View>
           ) : (
-            <Text>You are not part of any team yet.</Text>
+            <>
+              <Text>You are not part of any team yet.</Text>
+            </>
           )}
         </View>
       )}
@@ -752,7 +824,13 @@ const TeamManagementScreen = () => {
           )}
         </View>
       )}
-
+      {activeTab === 'teamChat' && (
+        <>
+          <TeamChatScreen teamPlayers={userTeam?.players} />
+          <TouchableOpacity
+            onPress={handleTeamChatNavigation}></TouchableOpacity>
+        </>
+      )}
       <Modal
         visible={selectedRole !== null}
         animationType="slide"
@@ -808,6 +886,12 @@ const TeamManagementScreen = () => {
             <Text style={styles.userInfo}>{`Age: ${timestampToAge(
               selectedUser?.age,
             )}`}</Text>
+            {selectedUser && selectedUser.status && (
+              <Text
+                style={
+                  styles.userInfo
+                }>{`Status: ${selectedUser.status}`}</Text>
+            )}
             {userTeam &&
               userTeam.captain_id === user.user_id &&
               userTeam.captain_id !== selectedUser?.user_id && (
@@ -815,7 +899,7 @@ const TeamManagementScreen = () => {
                   <TouchableOpacity
                     style={[styles.button, styles.promoteButton]}
                     onPress={() =>
-                      handlePromoteCaptain(user.team, selectedUser.user_id)
+                      handlePromoteCaptain(user.team, selectedUser)
                     }>
                     <Text style={styles.buttonText}>Make Captain</Text>
                   </TouchableOpacity>
@@ -1073,6 +1157,16 @@ const styles = StyleSheet.create({
     color: '#fff',
     backgroundColor: '#0E1E5B',
     marginTop: 32,
+    padding: 12,
+    borderRadius: 8,
+    textAlign: 'center',
+  },
+  leaveTeamButton: {
+    fontSize: 18,
+    color: '#fff',
+    backgroundColor: '#0E1E5B',
+    marginTop: 64,
+
     padding: 12,
     borderRadius: 8,
     textAlign: 'center',

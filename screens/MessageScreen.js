@@ -16,7 +16,7 @@ import avatarMapping from '../assets/avatars/avatarMapping';
 import BottomMenu from '../components/BottomMenu';
 import database from '@react-native-firebase/database';
 
-const API_URL = 'http://192.168.1.44:5000/users';
+const API_URL = 'http://192.168.1.46:5000/users';
 
 const MessageScreen = ({navigation}) => {
   const [activeTab, setActiveTab] = useState('messages');

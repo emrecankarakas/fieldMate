@@ -1,31 +1,39 @@
 import React from 'react';
 import {View, Text, StyleSheet, TouchableOpacity, Image} from 'react-native';
+import avatarMapping from '../assets/avatars/avatarMapping';
 
 const PlayerAd = ({playerAdInfo, onInvitePress}) => {
   const {
     name,
     role,
-    availableHours,
-    availableDays,
+    available_hours,
+    available_days,
     location,
     avatar,
     alternatives,
   } = playerAdInfo;
 
+  const daysArray = available_days.replace(/["{}]/g, '').split(', ');
+  const alternativesArray = alternatives.replace(/["{}]/g, '').split(', ');
   return (
     <View style={styles.playerCard}>
       <View style={styles.avatarContainer}>
-        <Image style={styles.avatar} source={avatar} />
+        <Image style={styles.avatar} source={avatarMapping[avatar]} />
         <Text style={styles.name}>{name}</Text>
-        <Text style={styles.role}>{role}</Text>
+        <Text style={styles.role}>
+          {role.charAt(0).toUpperCase() + role.slice(1)}
+        </Text>
       </View>
 
       <View style={styles.contentContainer}>
         <View style={styles.infoContainer}>
           <Text>Location: {location}</Text>
-          <Text>Time: {availableHours}</Text>
-          <Text>Days: {availableDays}</Text>
-          <Text>Alternatives: {alternatives}</Text>
+          <Text>Time: {Object.values(available_hours).join(' - ')}</Text>
+          <Text>Days: {daysArray.join(', ')}</Text>
+
+          {alternativesArray.length > 0 && (
+            <Text>Alternatives: {alternativesArray.join(', ')}</Text>
+          )}
         </View>
         <TouchableOpacity style={styles.inviteButton} onPress={onInvitePress}>
           <Text style={{color: 'white'}}>Invite</Text>
@@ -73,7 +81,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#888',
   },
-
   inviteButton: {
     backgroundColor: '#0e1e5b',
     width: 100,

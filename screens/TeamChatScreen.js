@@ -12,79 +12,100 @@ import {
 import {useAuth} from '../AuthContext';
 import database from '@react-native-firebase/database';
 
-const ChatScreen = ({route}) => {
-  const {userName} = route.params;
+const TeamChatScreen = () => {
   const {user} = useAuth();
-  const [messages, setMessages] = useState([]);
-  const [newMessage, setNewMessage] = useState('');
-  const [reports, setReports] = useState([]);
+  const [teamMessages, setTeamMessages] = useState([]);
+  const [newTeamMessage, setNewTeamMessage] = useState('');
   const flatListRef = useRef(null);
+  const [reports, setReports] = useState([]);
 
-  const messagesRef = database().ref('messages');
+  const teamChatRef = database().ref(`teamChat/${user.team}`);
   const API_URL = 'http://192.168.1.46:5000/admin';
+
   useEffect(() => {
     if (flatListRef.current) {
       flatListRef.current.scrollToEnd({animated: true});
     }
-  }, [messages]);
-  const fetchReports = async () => {
-    try {
-      const response = await fetch(`${API_URL}/get-reports`);
-      const data = await response.json();
-      if (response.ok) {
-        setReports(data.reports);
-      } else {
-        console.error('Failed to fetch reports');
-      }
-    } catch (error) {
-      console.error('Error fetching reports:', error);
-    }
-  };
-  const handleSendMessage = async () => {
+  }, [teamMessages]);
+
+  const handleSendTeamMessage = async () => {
     try {
       if (user) {
-        const newMessageData = {
+        const newTeamMessageData = {
           sender: user.username,
-          receiver: userName,
-          text: newMessage,
+          text: newTeamMessage,
           timestamp: Date.now(),
         };
 
-        messagesRef.push(newMessageData);
+        teamChatRef.push(newTeamMessageData);
 
-        setNewMessage('');
+        setNewTeamMessage('');
       } else {
         console.error('User information not found.');
       }
     } catch (error) {
-      console.error('Error sending message:', error);
+      console.error('Error sending team message:', error);
     }
   };
 
   useEffect(() => {
-    const onMessagesReceived = snapshot => {
+    const onTeamMessagesReceived = snapshot => {
       const data = snapshot.val();
       if (data) {
-        const messagesArray = Object.keys(data)
+        const teamMessagesArray = Object.keys(data)
           .map(key => ({id: key, ...data[key]}))
-          .filter(
-            item =>
-              (item.sender === user.username && item.receiver === userName) ||
-              (item.sender === userName && item.receiver === user.username),
-          )
           .sort((a, b) => a.timestamp - b.timestamp);
 
-        setMessages(messagesArray);
+        setTeamMessages(teamMessagesArray);
       }
     };
 
-    const messagesRef = database().ref('messages').orderByChild('timestamp');
-    messagesRef.on('value', onMessagesReceived);
+    teamChatRef.on('value', onTeamMessagesReceived);
 
     return () => {
-      messagesRef.off('value', onMessagesReceived);
+      teamChatRef.off('value', onTeamMessagesReceived);
     };
-  }, []);
+  }, [user.team]);
+
+  const renderMessage = ({item}) => {
+    const isSentByCurrentUser = item.sender === user.username;
+
+    return (
+      <View
+        style={[
+          styles.messageContainer,
+          {
+            justifyContent: isSentByCurrentUser ? 'flex-end' : 'flex-start',
+          },
+        ]}>
+        <TouchableOpacity
+          onLongPress={() => {
+            if (!isSentByCurrentUser) {
+              handleLongPress(item);
+            }
+          }}
+          style={[
+            styles.messageBubble,
+            {
+              alignSelf: isSentByCurrentUser ? 'flex-end' : 'flex-start',
+              backgroundColor: isSentByCurrentUser ? '#DCF8C5' : '#EDEDED',
+            },
+          ]}>
+          {!isSentByCurrentUser && (
+            <Text style={styles.senderText}>{item.sender}</Text>
+          )}
+          <Text style={styles.messageText}>{item.text}</Text>
+          <Text style={styles.timestampText}>
+            {new Date(item.timestamp).toLocaleTimeString('en-US', {
+              hour: 'numeric',
+              minute: 'numeric',
+            })}
+          </Text>
+        </TouchableOpacity>
+      </View>
+    );
+  };
+
   const handleLongPress = selectedMessage => {
     if (isAlreadyReported(selectedMessage.sender)) {
       Alert.alert(
@@ -123,7 +144,6 @@ const ChatScreen = ({route}) => {
         );
         return;
       }
-
       const response = await fetch(`${API_URL}/report`, {
         method: 'POST',
         headers: {
@@ -176,55 +196,44 @@ const ChatScreen = ({route}) => {
       );
     });
   };
+
+  const fetchReports = async () => {
+    try {
+      const response = await fetch(`${API_URL}/get-reports`);
+      const data = await response.json();
+      if (response.ok) {
+        setReports(data.reports);
+      } else {
+        console.error('Failed to fetch reports');
+      }
+    } catch (error) {
+      console.error('Error fetching reports:', error);
+    }
+  };
+
   useEffect(() => {
     fetchReports();
   }, []);
+
   return (
     <View style={styles.container}>
-      <Text style={styles.headerText}>{userName}</Text>
+      <Text style={styles.headerText}>Team Chat</Text>
       <FlatList
         ref={flatListRef}
-        data={messages}
+        data={teamMessages}
         keyExtractor={item => item.id}
-        renderItem={({item}) => (
-          <View
-            style={[
-              styles.messageContainer,
-              item.sender === user.username
-                ? styles.senderMessageContainer
-                : styles.receiverMessageContainer,
-            ]}>
-            <TouchableOpacity
-              style={[
-                styles.messageBubble,
-                item.sender === user.username
-                  ? styles.senderBubble
-                  : styles.receiverBubble,
-              ]}
-              onLongPress={() => {
-                if (item.sender !== user.username) {
-                  handleLongPress(item);
-                }
-              }}>
-              <Text style={styles.messageText}>{item.text}</Text>
-              <Text style={styles.timestampText}>
-                {new Date(item.timestamp).toLocaleTimeString('en-US', {
-                  hour: 'numeric',
-                  minute: 'numeric',
-                })}
-              </Text>
-            </TouchableOpacity>
-          </View>
-        )}
+        renderItem={renderMessage}
       />
       <View style={styles.inputContainer}>
         <TextInput
           style={styles.input}
           placeholder="Type your message..."
-          value={newMessage}
-          onChangeText={text => setNewMessage(text)}
+          value={newTeamMessage}
+          onChangeText={text => setNewTeamMessage(text)}
         />
-        <TouchableOpacity style={styles.sendButton} onPress={handleSendMessage}>
+        <TouchableOpacity
+          style={styles.sendButton}
+          onPress={handleSendTeamMessage}>
           <Text style={styles.sendButtonText}>Send</Text>
         </TouchableOpacity>
       </View>
@@ -244,31 +253,22 @@ const styles = StyleSheet.create({
   },
   messageContainer: {
     flexDirection: 'row',
-    justifyContent: 'flex-end',
+    justifyContent: 'flex-start',
     marginBottom: 10,
   },
-  senderMessageContainer: {
-    alignSelf: 'flex-end',
-  },
-  receiverMessageContainer: {
-    alignSelf: 'flex-start',
-  },
   messageBubble: {
-    maxWidth: '50%',
+    maxWidth: '80%',
     padding: 10,
     borderRadius: 10,
-    marginBottom: 5,
-  },
-  senderBubble: {
-    backgroundColor: '#4CAF50',
-    alignSelf: 'flex-end',
-  },
-  receiverBubble: {
-    backgroundColor: '#EDEDED',
     alignSelf: 'flex-start',
+    position: 'relative',
   },
   messageText: {
     color: 'black',
+  },
+  senderText: {
+    fontWeight: 'bold',
+    marginBottom: 5,
   },
   timestampText: {
     fontSize: 12,
@@ -302,4 +302,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default ChatScreen;
+export default TeamChatScreen;

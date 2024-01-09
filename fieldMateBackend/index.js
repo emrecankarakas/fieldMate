@@ -1,6 +1,7 @@
 import express from 'express';
 import postgresClient from './config/db.js';
 import userRouter from './routers/userRouter.js';
+import adminRouter from './routers/adminRouter.js';
 import admin from 'firebase-admin';
 import serviceAccount from './serviceAccountKey.json' assert {type: 'json'};
 
@@ -12,6 +13,7 @@ const app = express();
 app.use(express.json());
 
 app.use('/users', userRouter);
+app.use('/admin', adminRouter);
 
 const PORT = process.env.PORT || 5000;
 

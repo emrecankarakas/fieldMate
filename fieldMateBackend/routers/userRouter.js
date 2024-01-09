@@ -520,7 +520,7 @@ router.post('/accept-team-request', async (req, res) => {
 });
 router.post('/remove-team-player', async (req, res) => {
   try {
-    const {teamId, role} = req.body;
+    const {teamId, role, userId} = req.body;
 
     const updatePlayersQuery = `
       UPDATE teams
@@ -528,6 +528,14 @@ router.post('/remove-team-player', async (req, res) => {
       WHERE team_id = $1;
     `;
     await postgresClient.query(updatePlayersQuery, [teamId]);
+
+    const updateUserTeamQuery = `
+      UPDATE users
+      SET team = null
+      WHERE user_id = $1;
+    `;
+
+    const result = await postgresClient.query(updateUserTeamQuery, [userId]);
 
     res
       .status(200)
@@ -620,4 +628,60 @@ router.get('/get-team/:teamId', async (req, res) => {
     res.status(500).json({message: 'Failed to get team information'});
   }
 });
+router.post('/save-player-ad/:user_id', async (req, res) => {
+  try {
+    const userId = req.params.user_id;
+    const playerAdInfo = req.body;
+    const checkExistingAdQuery = 'SELECT * FROM player_ads WHERE user_id = $1';
+    const existingAdResult = await postgresClient.query(checkExistingAdQuery, [
+      userId,
+    ]);
+
+    if (existingAdResult.rows.length > 0) {
+      return res
+        .status(400)
+        .json({message: 'Player ad already exists for this user'});
+    }
+
+    const savePlayerAdQuery = `
+      INSERT INTO player_ads (user_id, name, role, avatar, available_hours, available_days, location, alternatives)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+      RETURNING *;
+    `;
+
+    const result = await postgresClient.query(savePlayerAdQuery, [
+      userId,
+      playerAdInfo.name,
+      playerAdInfo.role,
+      playerAdInfo.avatar,
+      playerAdInfo.availableHours,
+      playerAdInfo.availableDays,
+      playerAdInfo.location,
+      playerAdInfo.alternatives,
+    ]);
+
+    res.status(200).json({
+      message: 'Player ad saved successfully',
+      playerAd: result.rows[0],
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({message: 'Failed to save player ad'});
+  }
+});
+router.get('/get-all-player-ads', async (req, res) => {
+  try {
+    const getAllPlayerAdsQuery = 'SELECT * FROM player_ads';
+    const result = await postgresClient.query(getAllPlayerAdsQuery);
+
+    res.status(200).json({
+      message: 'All player ads fetched successfully',
+      playerAds: result.rows,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({message: 'Failed to fetch player ads'});
+  }
+});
+
 export default router;

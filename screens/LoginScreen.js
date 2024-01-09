@@ -13,7 +13,7 @@ import CustomButton from '../components/CustomButton';
 import messaging from '@react-native-firebase/messaging';
 import {useAuth} from '../AuthContext.js';
 
-const API_URL = 'http://192.168.1.44:5000/users';
+const API_URL = 'http://192.168.1.46:5000/users';
 
 const LoginScreen = ({navigation}) => {
   const {loginUser} = useAuth();
@@ -48,6 +48,13 @@ const LoginScreen = ({navigation}) => {
 
       if (response.status === 200) {
         const {user, fcmToken} = response.data;
+        console.log(user);
+        if (user.is_banned === 1) {
+          alert(
+            'Your account has been banned. Please contact support for further information.',
+          );
+          return;
+        }
 
         const token = await fetchData();
         loginUser(user);

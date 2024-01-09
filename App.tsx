@@ -12,6 +12,9 @@ import MessageScreen from './screens/MessageScreen';
 import messaging from '@react-native-firebase/messaging';
 import ChatScreen from './screens/ChatScreen';
 import TeamManagementScreen from './screens/TeamManagementScreen';
+import TeamChatScreen from './screens/TeamChatScreen';
+import AdminHistoryPage from './screens/AdminHistoryPage';
+import AdminHomeScreen from './screens/AdminHomeScreen';
 const Stack = createStackNavigator();
 
 const App = () => {
@@ -72,7 +75,6 @@ const App = () => {
 
     handleForegroundMessage();
   }, []);
-
   return (
     <AuthProvider>
       <NavigationContainer>
@@ -87,35 +89,7 @@ const AppNavigator = () => {
 
   return (
     <Stack.Navigator>
-      {user ? (
-        <>
-          <Stack.Screen
-            name="Home"
-            component={Home}
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name="Profile"
-            component={ProfileScreen}
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name="Message"
-            component={MessageScreen}
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name="Chat"
-            component={ChatScreen}
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name="TeamManagement"
-            component={TeamManagementScreen}
-            options={{ headerShown: false }}
-          />
-        </>
-      ) : (
+      {!user ? (
         <>
           <Stack.Screen
             name="Login"
@@ -133,9 +107,63 @@ const AppNavigator = () => {
             options={{ headerShown: false }}
           />
         </>
+      ) : (
+        <>
+          {user.user_type === 1 && (
+            <>
+              <Stack.Screen
+                name="Home"
+                component={Home}
+                options={{ headerShown: false }}
+              />
+              <Stack.Screen
+                name="Profile"
+                component={ProfileScreen}
+                options={{ headerShown: false }}
+              />
+              <Stack.Screen
+                name="Message"
+                component={MessageScreen}
+                options={{ headerShown: false }}
+              />
+              <Stack.Screen
+                name="Chat"
+                component={ChatScreen}
+                options={{ headerShown: false }}
+              />
+              <Stack.Screen
+                name="TeamChat"
+                component={TeamChatScreen}
+                options={{ headerShown: false }}
+              />
+              <Stack.Screen
+                name="TeamManagement"
+                component={TeamManagementScreen}
+                options={{ headerShown: false }}
+              />
+            </>
+          )}
+  
+          {user.user_type === 2 && (
+            <>
+            <Stack.Screen
+                name="AdminHome"
+                component={AdminHomeScreen}
+                options={{ headerShown: false }}
+              />
+              <Stack.Screen
+                name="AdminHistory"
+                component={AdminHistoryPage}
+                options={{ headerShown: false }}
+              />
+              
+            </>
+          )}
+        </>
       )}
     </Stack.Navigator>
   );
-};
+  
+          }
 
 export default App;
