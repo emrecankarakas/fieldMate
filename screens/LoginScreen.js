@@ -13,7 +13,7 @@ import CustomButton from '../components/CustomButton';
 import messaging from '@react-native-firebase/messaging';
 import {useAuth} from '../AuthContext.js';
 
-const API_URL = 'http://192.168.1.46:5000/users';
+const API_URL = 'http://192.168.1.33:5000/users';
 
 const LoginScreen = ({navigation}) => {
   const {loginUser} = useAuth();

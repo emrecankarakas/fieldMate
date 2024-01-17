@@ -1,6 +1,7 @@
 import express from 'express';
 import postgresClient from '../config/db.js';
-
+import bcrypt from 'bcrypt';
+import {v4 as uuidv4} from 'uuid';
 const router = express.Router();
 
 router.post('/report', async (req, res) => {
@@ -140,4 +141,48 @@ router.put('/remove-ban/:reportId', async (req, res) => {
     });
   }
 });
+
+router.post('/add-field-owner', async (req, res) => {
+  try {
+    const {email, password, fullName, userName} = req.body;
+    const user_id = uuidv4();
+    const checkExistingUserQuery = `
+      SELECT * FROM users
+      WHERE email = $1 OR username = $2;
+    `;
+    const existingUserResult = await postgresClient.query(
+      checkExistingUserQuery,
+      [email, userName],
+    );
+    if (existingUserResult.rows.length > 0) {
+      return res
+        .status(400)
+        .json({message: 'Email or username already exists'});
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const insertUserQuery = `
+      INSERT INTO users ("user_id", email, password, fullname, username, user_type)
+      VALUES ($1, $2, $3, $4, $5, 3)
+      RETURNING *;
+    `;
+
+    const result = await postgresClient.query(insertUserQuery, [
+      user_id,
+      email,
+      hashedPassword,
+      fullName,
+      userName,
+    ]);
+
+    const newUser = result.rows[0];
+
+    res.status(201).json({message: 'Field owner added successfully', newUser});
+  } catch (error) {
+    console.error('Error adding field owner:', error);
+    res.status(500).json({message: 'Error adding field owner'});
+  }
+});
+
 export default router;

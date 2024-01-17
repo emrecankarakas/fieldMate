@@ -21,7 +21,7 @@ const ChatScreen = ({route}) => {
   const flatListRef = useRef(null);
 
   const messagesRef = database().ref('messages');
-  const API_URL = 'http://192.168.1.46:5000/admin';
+  const API_URL = 'http://192.168.1.33:5000/admin';
   useEffect(() => {
     if (flatListRef.current) {
       flatListRef.current.scrollToEnd({animated: true});

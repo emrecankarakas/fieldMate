@@ -25,7 +25,7 @@ const AdminHistoryPage = () => {
   const fetchBannedReports = async () => {
     try {
       const response = await fetch(
-        'http://192.168.1.46:5000/admin/get-reports',
+        'http://192.168.1.33:5000/admin/get-reports',
       );
       const data = await response.json();
 
@@ -45,7 +45,7 @@ const AdminHistoryPage = () => {
   const removeBan = async reportId => {
     try {
       const response = await fetch(
-        `http://192.168.1.46:5000/admin/remove-ban/${reportId}`,
+        `http://192.168.1.33:5000/admin/remove-ban/${reportId}`,
         {
           method: 'PUT',
         },

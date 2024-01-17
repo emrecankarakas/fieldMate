@@ -14,7 +14,7 @@ const AdminHomeScreen = () => {
   const navigation = useNavigation();
   const {logoutUser} = useAuth();
   const [reports, setReports] = useState([]);
-  const API_URL = 'http://192.168.1.46:5000/admin';
+  const API_URL = 'http://192.168.1.33:5000/admin';
 
   useEffect(() => {
     fetchReports();
@@ -44,6 +44,9 @@ const AdminHomeScreen = () => {
 
   const goToAdminHistory = () => {
     navigation.navigate('AdminHistory');
+  };
+  const goToAddFieldOwner = () => {
+    navigation.navigate('AdminAddFieldOwner');
   };
 
   const onConfirmPress = async reportId => {
@@ -93,6 +96,14 @@ const AdminHomeScreen = () => {
           <Image
             source={require('../assets/icons/history.png')}
             style={styles.historyIcon}
+          />
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.historyButton}
+          onPress={goToAddFieldOwner}>
+          <Image
+            source={require('../assets/icons/add-user.png')}
+            style={styles.addUserIcon}
           />
         </TouchableOpacity>
       </View>
@@ -150,6 +161,11 @@ const styles = StyleSheet.create({
   historyIcon: {
     width: 22,
     height: 22,
+    tintColor: 'white',
+  },
+  addUserIcon: {
+    width: 18,
+    height: 18,
     tintColor: 'white',
   },
   headerTitle: {

@@ -14,16 +14,19 @@ import TopMenu from '../components/TopMenu';
 import BottomMenu from '../components/BottomMenu';
 import PlayerAd from '../components/PlayerAd';
 import MatchAd from '../components/MatchAd';
+import FieldAd from '../components/FieldAd';
+
 import {useAuth} from '../AuthContext';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 
 const Home = () => {
   const [activeTab, setActiveTab] = useState('matches');
+  const [allFields, setAllFields] = useState([]);
   const [isPlayerModalVisible, setPlayerModalVisible] = useState(false);
   const [selectStartDate, setSelectStartDate] = useState(null);
   const [selectEndDate, setSelectEndDate] = useState(null);
   const [userPlayerAds, setUserPlayerAds] = useState([]);
-  const {user} = useAuth();
+  const {user, logoutUser} = useAuth();
   const [isStartTimePickerVisible, setStartTimePickerVisible] = useState(false);
   const [isEndTimePickerVisible, setEndTimePickerVisible] = useState(false);
   const [isFilterModalVisible, setFilterModalVisible] = useState(false);
@@ -34,15 +37,28 @@ const Home = () => {
   });
 
   const [playerAdInfo, setPlayerAdInfo] = useState({
-    name: user.fullname,
-    role: user.role,
-    avatar: user.avatar,
+    name: user?.fullname,
+    role: user?.role,
+    avatar: user?.avatar,
     availableHours: {start: '', end: ''},
     availableDays: '',
     location: '',
     alternatives: '',
   });
-  const API_URL = 'http://192.168.1.46:5000/users';
+
+  const API_URL = 'http://192.168.1.33:5000/users';
+
+  const fetchAllFields = async () => {
+    try {
+      const response = await fetch(
+        'http://192.168.1.33:5000/field/get-all-fields',
+      );
+      const data = await response.json();
+      setAllFields(data.fields);
+    } catch (error) {
+      console.error('Error fetching fields:', error);
+    }
+  };
   const filterPlayerAd = userPlayerAd => {
     const locationMatch =
       !filterOptions.location ||
@@ -113,7 +129,30 @@ const Home = () => {
       day: selectedDays,
     }));
   };
+  const checkUserBanStatus = async () => {
+    try {
+      const updatedUserResponse = await fetch(
+        `${API_URL}/get-user/${user.user_id}`,
+      );
 
+      if (updatedUserResponse.ok) {
+        const responseBody = await updatedUserResponse.json();
+        const isBanned = responseBody.user.is_banned;
+
+        if (isBanned === 1) {
+          Alert.alert(
+            'Ban Notice',
+            'You have been banned. Please contact support for further information.',
+            [{text: 'OK', onPress: () => logoutUser()}],
+          );
+        }
+      } else {
+        console.error('Failed to check user ban status');
+      }
+    } catch (error) {
+      console.error('Error checking user ban status:', error);
+    }
+  };
   const renderFilterRolesSelector = () => (
     <View style={styles.rolesSelector}>
       {['Midfield', 'Striker', 'Forward', 'Goalkeeper'].map(role => (
@@ -159,14 +198,15 @@ const Home = () => {
       .then(response => response.json())
       .then(data => {
         setUserPlayerAds(data.playerAds);
-        console.log(userPlayerAds);
       })
       .catch(error => {
         console.error('Error:', error);
       });
   };
   useEffect(() => {
+    checkUserBanStatus();
     fetchPlayerAds();
+    fetchAllFields();
   }, [activeTab]);
 
   const handleTabPress = tab => {
@@ -437,31 +477,33 @@ const Home = () => {
         </View>
       </TouchableOpacity>
       <ScrollView style={styles.contentContainer}>
-        {activeTab === 'players' ? (
-          filterOptions.day.length > 0 ||
-          filterOptions.role.length > 0 ||
-          filterOptions.location ? (
-            userPlayerAds.filter(filterPlayerAd).map((playerAd, index) => (
+        {activeTab === 'players'
+          ? filterOptions.day.length > 0 ||
+            filterOptions.role.length > 0 ||
+            filterOptions.location
+            ? userPlayerAds.filter(filterPlayerAd).map((playerAd, index) => (
+                <View key={index}>
+                  <PlayerAd playerAdInfo={playerAd} />
+                </View>
+              ))
+            : userPlayerAds.map((playerAd, index) => (
+                <View key={index}>
+                  <PlayerAd playerAdInfo={playerAd} />
+                </View>
+              ))
+          : activeTab === 'matches'
+          ? matchAds.map((matchAd, index) => (
               <View key={index}>
-                <PlayerAd playerAdInfo={playerAd} />
+                <MatchAd {...matchAd} />
               </View>
             ))
-          ) : (
-            userPlayerAds.map((playerAd, index) => (
+          : activeTab === 'fields'
+          ? allFields.map((field, index) => (
               <View key={index}>
-                <PlayerAd playerAdInfo={playerAd} />
+                <FieldAd fieldInfo={field} />
               </View>
             ))
-          )
-        ) : activeTab === 'matches' ? (
-          matchAds.map((matchAd, index) => (
-            <View key={index}>
-              <MatchAd {...matchAd} />
-            </View>
-          ))
-        ) : activeTab === 'fields' ? (
-          <Text>Fields Content</Text>
-        ) : null}
+          : null}
       </ScrollView>
 
       <TouchableOpacity style={styles.addButton} onPress={() => ''}>

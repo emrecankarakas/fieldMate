@@ -36,7 +36,7 @@ const TeamManagementScreen = () => {
   const [selectedRole, setSelectedRole] = useState(null);
 
   const {updateUser, user} = useAuth();
-  const API_URL = 'http://192.168.1.46:5000/users';
+  const API_URL = 'http://192.168.1.33:5000/users';
 
   const handleTeamChatNavigation = () => {
     navigation.navigate('TeamChat');

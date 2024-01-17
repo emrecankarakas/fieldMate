@@ -3,6 +3,7 @@ import postgresClient from '../config/db.js';
 import {v4 as uuidv4} from 'uuid';
 import speakeasy from 'speakeasy';
 import nodemailer from 'nodemailer';
+import bcrypt from 'bcrypt';
 
 const router = express.Router();
 
@@ -114,7 +115,7 @@ router.post('/verify-otp', async (req, res) => {
 
     if (otpResult.rows.length === 1) {
       const user_id = uuidv4();
-
+      const hashedPassword = await bcrypt.hash(password, 10);
       const insertQuery =
         'INSERT INTO users ("user_id", fullname, email, password, role, age, avatar, username) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *';
 
@@ -122,7 +123,7 @@ router.post('/verify-otp', async (req, res) => {
         user_id,
         fullname,
         email,
-        password,
+        hashedPassword,
         role,
         age,
         avatar,
@@ -151,12 +152,18 @@ router.post('/login', async (req, res) => {
   try {
     const {email, password} = req.body;
 
-    const query = 'SELECT * FROM users WHERE email = $1 AND password = $2';
+    const getUserQuery = 'SELECT * FROM users WHERE email = $1';
 
-    const result = await postgresClient.query(query, [email, password]);
+    const userResult = await postgresClient.query(getUserQuery, [email]);
 
-    if (result.rows.length === 1) {
-      res.status(200).json({message: 'login success', user: result.rows[0]});
+    if (userResult.rows.length === 1) {
+      const user = userResult.rows[0];
+
+      if (user) {
+        res.status(200).json({message: 'login success', user});
+      } else {
+        res.status(401).json({message: 'login failed'});
+      }
     } else {
       res.status(401).json({message: 'login failed'});
     }
@@ -184,7 +191,6 @@ router.get('/get-user/:user_id', async (req, res) => {
     res.status(500).json({message: 'Failed to get user information'});
   }
 });
-
 router.post('/add-friend', async (req, res) => {
   try {
     const {user_id, friendId} = req.body;

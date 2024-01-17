@@ -15,6 +15,10 @@ import TeamManagementScreen from './screens/TeamManagementScreen';
 import TeamChatScreen from './screens/TeamChatScreen';
 import AdminHistoryPage from './screens/AdminHistoryPage';
 import AdminHomeScreen from './screens/AdminHomeScreen';
+import AdminAddFieldOwner from './screens/AdminAddFieldOwner';
+import FieldOwnerHome from './screens/FieldOwnerHome';
+import  FieldOwnerFields  from './screens/FieldOwnerFields';
+import FieldOwnerReservation  from './screens/FieldOwnerReservation';
 const Stack = createStackNavigator();
 
 const App = () => {
@@ -156,7 +160,31 @@ const AppNavigator = () => {
                 component={AdminHistoryPage}
                 options={{ headerShown: false }}
               />
-              
+                <Stack.Screen
+                name="AdminAddFieldOwner"
+                component={AdminAddFieldOwner}
+                options={{ headerShown: false }}
+              />
+            </>
+          )}
+           {user.user_type === 3 && (
+            <>
+           
+                <Stack.Screen
+                name="FieldOwnerHome"
+                component={FieldOwnerHome}
+                options={{ headerShown: false }}
+              />
+               <Stack.Screen
+                name="FieldOwnerFields"
+                component={FieldOwnerFields}
+                options={{ headerShown: false }}
+              />
+               <Stack.Screen
+                name="FieldOwnerReservation"
+                component={FieldOwnerReservation}
+                options={{ headerShown: false }}
+              />
             </>
           )}
         </>

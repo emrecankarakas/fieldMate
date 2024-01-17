@@ -4,6 +4,7 @@ import userRouter from './routers/userRouter.js';
 import adminRouter from './routers/adminRouter.js';
 import admin from 'firebase-admin';
 import serviceAccount from './serviceAccountKey.json' assert {type: 'json'};
+import fieldRouter from './routers/fieldRouter.js';
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
@@ -14,6 +15,7 @@ app.use(express.json());
 
 app.use('/users', userRouter);
 app.use('/admin', adminRouter);
+app.use('/field', fieldRouter);
 
 const PORT = process.env.PORT || 5000;
 
