@@ -46,7 +46,9 @@ const BottomMenu = () => {
           style={styles.icon2}
         />
       </TouchableOpacity>
-      <TouchableOpacity style={styles.circle} onPress={''}>
+      <TouchableOpacity
+        style={styles.circle}
+        onPress={() => handlePress('ReservationScreen')}>
         <Image
           source={require('../assets/icons/calendar.png')}
           style={styles.icon}

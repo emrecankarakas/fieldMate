@@ -689,5 +689,265 @@ router.get('/get-all-player-ads', async (req, res) => {
     res.status(500).json({message: 'Failed to fetch player ads'});
   }
 });
+router.post('/create-match', async (req, res) => {
+  try {
+    const {fieldInfo, fieldId, team1Info, team2Info, userId, reservation_id} =
+      req.body;
+
+    const checkMatchExistenceQuery =
+      'SELECT * FROM matches WHERE reservation_id = $1';
+    const existingMatchResult = await postgresClient.query(
+      checkMatchExistenceQuery,
+      [reservation_id],
+    );
+
+    if (existingMatchResult.rows.length > 0) {
+      return res
+        .status(400)
+        .json({message: 'A match already exists for this reservation'});
+    }
+
+    const matchId = uuidv4();
+
+    const createMatchQuery = `
+      INSERT INTO matches (field_info, match_id, field_id, team1_info, team2_info, user_id, reservation_id)
+      VALUES ($1, $2, $3, $4, $5, $6, $7)
+      RETURNING *;
+    `;
+
+    const result = await postgresClient.query(createMatchQuery, [
+      JSON.stringify(fieldInfo),
+      matchId,
+      fieldId,
+      JSON.stringify(team1Info),
+      JSON.stringify(team2Info),
+      userId,
+      reservation_id,
+    ]);
+
+    res.status(201).json({
+      message: 'Match created successfully',
+      matchInfo: result.rows[0],
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({message: 'Failed to create match'});
+  }
+});
+
+router.get('/get-all-matches', async (req, res) => {
+  try {
+    const getAllMatchesQuery = 'SELECT * FROM matches';
+    const result = await postgresClient.query(getAllMatchesQuery);
+
+    res.status(200).json({
+      message: 'All matches fetched successfully',
+      matches: result.rows,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({message: 'Failed to fetch matches'});
+  }
+});
+router.get('/get-matches-by-user/:user_id', async (req, res) => {
+  try {
+    const {user_id} = req.params;
+
+    const getMatchesByUserQuery = 'SELECT * FROM matches WHERE user_id = $1';
+    const result = await postgresClient.query(getMatchesByUserQuery, [user_id]);
+
+    res.status(200).json({
+      message: 'Matches fetched successfully for the user',
+      matches: result.rows,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({message: 'Failed to fetch matches for the user'});
+  }
+});
+router.post('/send-match-invitation', async (req, res) => {
+  try {
+    const {match_id, receiver_id, sender_id, position, field_info, team_name} =
+      req.body;
+
+    const checkExistingInviteQuery =
+      'SELECT * FROM match_invitations WHERE match_id = $1 AND receiver_id = $2';
+
+    const existingInvitations = await postgresClient.query(
+      checkExistingInviteQuery,
+      [match_id, receiver_id],
+    );
+
+    if (existingInvitations.rows.length > 0) {
+      return res.status(409).json({
+        message: 'Player already invited for this match',
+      });
+    }
+
+    const checkPositionQuery =
+      'SELECT * FROM match_invitations WHERE match_id = $1 AND receiver_id = $2 AND position = $3';
+
+    const existingPositionInvitation = await postgresClient.query(
+      checkPositionQuery,
+      [match_id, receiver_id, position],
+    );
+
+    if (existingPositionInvitation.rows.length > 0) {
+      return res.status(409).json({
+        message: 'Position already invited for this match and receiver',
+      });
+    }
+
+    const sendInvitationQuery = `
+      INSERT INTO match_invitations (match_id, receiver_id, sender_id, position, field_info, team_name)
+      VALUES ($1, $2, $3, $4, $5, $6)
+      RETURNING *;
+    `;
+
+    const invitationResult = await postgresClient.query(sendInvitationQuery, [
+      match_id,
+      receiver_id,
+      sender_id,
+      position,
+      field_info,
+      team_name,
+    ]);
+
+    if (invitationResult.rows.length === 0) {
+      return res.status(500).json({
+        message: 'Failed to send match invitation',
+      });
+    }
+
+    res.status(201).json({
+      message: 'Match invitation sent successfully',
+      invitation: invitationResult.rows[0],
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({message: 'Failed to send match invitation'});
+  }
+});
+router.get('/get-match-requests/:userId', async (req, res) => {
+  try {
+    const userId = req.params.userId;
+
+    const getUserReservationsQuery = `
+      SELECT * FROM match_invitations
+      WHERE receiver_id = $1;
+    `;
+
+    const userReservations = await postgresClient.query(
+      getUserReservationsQuery,
+      [userId],
+    );
+
+    res.status(200).json({
+      message: 'Match reservations fetched successfully',
+      reservations: userReservations.rows,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({message: 'Failed to fetch user reservations'});
+  }
+});
+router.post('/accept-match-request', async (req, res) => {
+  try {
+    const {match_id, match_request_id, team_name, user_id, position} = req.body;
+    const findMatchQuery = 'SELECT * FROM matches WHERE match_id = $1';
+    const matchResult = await postgresClient.query(findMatchQuery, [match_id]);
+
+    if (matchResult.rows.length === 0) {
+      return res.status(404).json({message: 'Match not found'});
+    }
+
+    const match = matchResult.rows[0];
+    let teamToUpdate;
+    if (match.team1_info.name === team_name) {
+      teamToUpdate = match.team1_info;
+    } else if (match.team2_info.name === team_name) {
+      teamToUpdate = match.team2_info;
+    } else {
+      return res.status(403).json({message: 'Team not found in the match'});
+    }
+
+    const updatedPlayers = teamToUpdate.players.map(player => {
+      if (player.position === position) {
+        const updatedPlayer = {...player, isFull: true, userId: user_id};
+        return updatedPlayer;
+      }
+      return player;
+    });
+
+    const updatedTeamInfo = {...teamToUpdate, players: updatedPlayers};
+
+    const updateMatchQuery = `
+      UPDATE matches
+      SET
+        team1_info = $1,
+        team2_info = $2
+      WHERE match_id = $3
+      RETURNING *;
+    `;
+
+    const updatedMatchResult = await postgresClient.query(updateMatchQuery, [
+      JSON.stringify(
+        match.team1_info.name === team_name
+          ? updatedTeamInfo
+          : match.team1_info,
+      ),
+      JSON.stringify(
+        match.team2_info.name === team_name
+          ? updatedTeamInfo
+          : match.team2_info,
+      ),
+      match_id,
+    ]);
+
+    const updatedMatch = updatedMatchResult.rows[0];
+
+    const deleteMatchRequestQuery =
+      'DELETE FROM match_invitations WHERE id = $1';
+    await postgresClient.query(deleteMatchRequestQuery, [match_request_id]);
+
+    res.status(200).json({
+      message: 'Match request accepted successfully',
+      updatedMatch,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({message: 'Failed to accept match request'});
+  }
+});
+router.post('/reject-match-request', async (req, res) => {
+  try {
+    const {match_request_id} = req.body;
+
+    const findMatchInvitationQuery =
+      'SELECT * FROM match_invitations WHERE id = $1';
+    const matchInvitationResult = await postgresClient.query(
+      findMatchInvitationQuery,
+      [match_request_id],
+    );
+
+    if (matchInvitationResult.rows.length === 0) {
+      return res.status(404).json({message: 'Match invitation not found'});
+    }
+
+    const matchInvitation = matchInvitationResult.rows[0];
+
+    const deleteMatchRequestQuery =
+      'DELETE FROM match_invitations WHERE id = $1';
+    await postgresClient.query(deleteMatchRequestQuery, [match_request_id]);
+
+    res.status(200).json({
+      message: 'Match request rejected successfully',
+      rejectedMatchInvitation: matchInvitation,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({message: 'Failed to reject match request'});
+  }
+});
 
 export default router;

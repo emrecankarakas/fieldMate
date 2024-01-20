@@ -19,6 +19,7 @@ import AdminAddFieldOwner from './screens/AdminAddFieldOwner';
 import FieldOwnerHome from './screens/FieldOwnerHome';
 import  FieldOwnerFields  from './screens/FieldOwnerFields';
 import FieldOwnerReservation  from './screens/FieldOwnerReservation';
+import ReservationScreen from './screens/ReservationScreen';
 const Stack = createStackNavigator();
 
 const App = () => {
@@ -143,6 +144,11 @@ const AppNavigator = () => {
               <Stack.Screen
                 name="TeamManagement"
                 component={TeamManagementScreen}
+                options={{ headerShown: false }}
+              />
+               <Stack.Screen
+                name="ReservationScreen"
+                component={ReservationScreen}
                 options={{ headerShown: false }}
               />
             </>

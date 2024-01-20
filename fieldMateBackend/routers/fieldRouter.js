@@ -215,6 +215,53 @@ fieldRouter.get('/get-all-fields', async (req, res) => {
     res.status(500).json({message: 'Failed to get all fields'});
   }
 });
+fieldRouter.get(
+  '/get-reservations-by-owner/:fieldOwnerId',
+  async (req, res) => {
+    try {
+      const {fieldOwnerId} = req.params;
+
+      const getReservationsByOwnerQuery = `
+      SELECT reservations.*, fields.name AS field_name, users.username
+      FROM reservations
+      INNER JOIN fields ON reservations.field_id = fields.field_id
+      INNER JOIN users ON reservations.user_id = users.user_id
+      WHERE fields.field_owner_id = $1;
+    `;
+
+      const result = await postgresClient.query(getReservationsByOwnerQuery, [
+        fieldOwnerId,
+      ]);
+
+      res.status(200).json({reservations: result.rows});
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({message: 'Failed to get reservations by owner'});
+    }
+  },
+);
+fieldRouter.get('/get-reservations-by-user/:userId', async (req, res) => {
+  try {
+    const {userId} = req.params;
+
+    const getReservationsByUserQuery = `
+  SELECT reservations.*, fields.name AS field_name, fields.location
+  FROM reservations
+  INNER JOIN fields ON reservations.field_id = fields.field_id
+  WHERE reservations.user_id = $1
+`;
+
+    const result = await postgresClient.query(getReservationsByUserQuery, [
+      userId,
+    ]);
+
+    res.status(200).json({reservations: result.rows});
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({message: 'Failed to get reservations by user'});
+  }
+});
+
 fieldRouter.get('/get-all-reservations', async (req, res) => {
   try {
     const getAllReservationsQuery = `

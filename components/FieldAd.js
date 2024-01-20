@@ -277,13 +277,15 @@ const FieldAd = ({fieldInfo, isFieldOwner, onUpdate}) => {
             style={styles.logo}
             source={require('../assets/facilities_SOC_Duggins_aerial_lighted_DJI_0237_edited.jpg')}
           />
-          <Text style={styles.fieldName}>{fieldInfo.name}</Text>
         </View>
         <View style={styles.infoContainer}>
-          <Text style={styles.fieldInfoText}>Location: </Text>
-          <Text style={styles.fieldInfoText}>{fieldInfo.location}</Text>
-          <Text style={styles.fieldInfoText}>Date: </Text>
-          <Text style={styles.fieldInfoText}>{fieldInfo.date}</Text>
+          <Text style={styles.fieldInfoText}>
+            Location: {fieldInfo.location}
+          </Text>
+
+          <Text style={styles.fieldInfoText}>Date:{fieldInfo.date} </Text>
+
+          <Text style={styles.fieldName}>{fieldInfo.name}</Text>
         </View>
       </View>
 
@@ -387,16 +389,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginTop: 16,
+    gap: 10,
   },
   addButton: {
     backgroundColor: 'green',
     flex: 1,
-    marginLeft: 8,
   },
   deleteButton: {
     backgroundColor: 'red',
     flex: 1,
-    marginRight: 8,
   },
   reserveButton: {
     backgroundColor: '#0e1e5b',
@@ -406,17 +407,12 @@ const styles = StyleSheet.create({
     width: '50%',
     alignItems: 'center',
   },
-  buttonContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 16,
-  },
+
   button: {
     flex: 1,
     alignItems: 'center',
     padding: 10,
-    borderRadius: 8,
-    marginLeft: 8,
+    borderRadius: 12,
   },
   reserveButton: {
     backgroundColor: '#0e1e5b',
@@ -430,7 +426,7 @@ const styles = StyleSheet.create({
   },
   fieldCard: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 12,
+    borderRadius: 16,
     padding: 16,
     marginBottom: 16,
   },
@@ -442,11 +438,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 8,
     flex: 1,
+    left: 5,
+    top: 5,
   },
   logo: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+    width: 70,
+    height: 70,
+    borderRadius: 35,
   },
   fieldName: {
     fontSize: 16,
@@ -454,8 +452,9 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   infoContainer: {
-    marginLeft: 16,
-    flex: 2,
+    top: 10,
+    marginLeft: 24,
+    flex: 3.5,
   },
   fieldInfoText: {
     color: 'black',
@@ -463,6 +462,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   locationContainer: {
+    left: 5,
     alignItems: 'flex-start',
     marginTop: 16,
   },
@@ -525,18 +525,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginBottom: 10,
   },
-  buttonContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 16,
-  },
-  button: {
-    flex: 1,
-    alignItems: 'center',
-    padding: 10,
-    borderRadius: 8,
-    marginLeft: 8,
-  },
+
   modalContainer2: {
     flex: 1,
     justifyContent: 'center',

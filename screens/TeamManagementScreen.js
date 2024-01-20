@@ -104,7 +104,7 @@ const TeamManagementScreen = () => {
     fetchTeamRequests();
     fetchFriends();
     fetchUserTeam();
-  }, [user.team]);
+  }, []);
 
   const handleCreateTeam = async () => {
     if (!teamName.trim()) {

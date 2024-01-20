@@ -107,7 +107,8 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   fieldListContainer: {
-    padding: 10,
+    padding: 20,
+    marginBottom: 10,
   },
 });
 

@@ -9,9 +9,9 @@ import {
   Linking,
 } from 'react-native';
 
-const MatchAd = ({team1Info, team2Info, onLocationPress}) => {
+const MatchAd = ({team1Info, team2Info, fieldInfo}) => {
   const renderPlayerIcons = players => {
-    return players.map((player, index) => (
+    return players?.map((player, index) => (
       <View
         key={index}
         style={[
@@ -32,7 +32,7 @@ const MatchAd = ({team1Info, team2Info, onLocationPress}) => {
   };
 
   const handleLocationPress = () => {
-    const locationQuery = `${team1Info.location} `;
+    const locationQuery = `${fieldInfo?.location} `;
     const mapUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
       locationQuery,
     )}`;
@@ -43,26 +43,32 @@ const MatchAd = ({team1Info, team2Info, onLocationPress}) => {
       <View style={styles.teamContainer}>
         <View style={styles.teamInfoContainer}>
           <View style={styles.logoContainer}>
-            <Image style={styles.logo} source={team1Info.logo} />
-            <Text style={styles.teamName}>{team1Info.name}</Text>
+            <Image
+              style={styles.logo}
+              source={require('../assets/avatars/avatar1.png')}
+            />
+            <Text style={styles.teamName}>{team1Info?.name}</Text>
           </View>
           <View style={styles.playerIconsContainer}>
-            {renderPlayerIcons(team1Info.players)}
+            {renderPlayerIcons(team1Info?.players)}
           </View>
         </View>
         <View style={styles.infoContainer}>
           <Text style={styles.matchInfoText}>Time</Text>
-          <Text style={styles.matchInfoText}>{team1Info.time}</Text>
+          <Text style={styles.matchInfoText}>{fieldInfo?.time}</Text>
           <Text style={styles.matchInfoText}>Day</Text>
-          <Text style={styles.matchInfoText}>{team1Info.day}</Text>
+          <Text style={styles.matchInfoText}>{fieldInfo?.day}</Text>
         </View>
         <View style={styles.teamInfoContainer}>
           <View style={styles.logoContainer}>
-            <Image style={styles.logo} source={team2Info.logo} />
-            <Text style={styles.teamName}>{team2Info.name}</Text>
+            <Image
+              style={styles.logo}
+              source={require('../assets/avatars/avatar1.png')}
+            />
+            <Text style={styles.teamName}>{team2Info?.name}</Text>
           </View>
           <View style={styles.playerIconsContainer}>
-            {renderPlayerIcons(team2Info.players)}
+            {renderPlayerIcons(team2Info?.players)}
           </View>
         </View>
       </View>
@@ -77,7 +83,7 @@ const MatchAd = ({team1Info, team2Info, onLocationPress}) => {
             fontSize: 12,
           }}>
           Location:{' '}
-          <Text style={styles.locationText}>{team1Info.location}</Text>
+          <Text style={styles.locationText}>{fieldInfo?.location}</Text>
         </Text>
       </TouchableOpacity>
     </ScrollView>

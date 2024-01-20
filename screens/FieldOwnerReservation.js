@@ -12,7 +12,7 @@ import {useNavigation} from '@react-navigation/native';
 const FieldOwnerReservation = () => {
   const [reservations, setReservations] = useState([]);
   const navigation = useNavigation();
-
+  const {user} = useAuth();
   const goToBackFieldOwnerHome = () => {
     navigation.navigate('FieldOwnerHome');
   };
@@ -22,7 +22,7 @@ const FieldOwnerReservation = () => {
   const fetchReservations = async () => {
     try {
       const response = await fetch(
-        'http://192.168.1.33:5000/field/get-all-reservations',
+        `http://192.168.1.33:5000/field/get-reservations-by-owner/${user.user_id}`,
       );
       const data = await response.json();
 
@@ -31,6 +31,7 @@ const FieldOwnerReservation = () => {
       console.error('Error fetching reservations:', error);
     }
   };
+
   const handleCancelReservation = async reservationId => {
     try {
       const response = await fetch(
@@ -106,6 +107,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     borderRadius: 24,
     padding: 16,
+    marginBottom: 10,
     borderBottomWidth: 1,
     borderBottomColor: '#ccc',
   },
@@ -165,7 +167,7 @@ const styles = StyleSheet.create({
   itemContainer: {
     backgroundColor: '#D9D9D9',
     flex: 1,
-    padding: 10,
+    padding: 20,
   },
 });
 
