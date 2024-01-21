@@ -24,9 +24,6 @@ const avatarOptions = [
   {name: 'avatar4', image: require('../assets/avatars/avatar4.png')},
   {name: 'avatar5', image: require('../assets/avatars/avatar5.png')},
   {name: 'avatar6', image: require('../assets/avatars/avatar6.png')},
-  {name: 'avatar7', image: require('../assets/avatars/avatar4.png')},
-  {name: 'avatar8', image: require('../assets/avatars/avatar5.png')},
-  {name: 'avatar9', image: require('../assets/avatars/avatar6.png')},
 ];
 const footballRoles = [
   {label: 'Goalkeeper', value: 'goalkeeper'},

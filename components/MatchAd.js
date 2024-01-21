@@ -53,7 +53,7 @@ const MatchAd = ({
           <View style={styles.logoContainer}>
             <Image
               style={styles.logo}
-              source={require('../assets/avatars/avatar1.png')}
+              source={require('../assets/icons/manchester-city.png')}
             />
             <Text style={styles.teamName}>{team1Info?.name}</Text>
           </View>
@@ -71,7 +71,7 @@ const MatchAd = ({
           <View style={styles.logoContainer}>
             <Image
               style={styles.logo}
-              source={require('../assets/avatars/avatar1.png')}
+              source={require('../assets/icons/barcelona.png')}
             />
             <Text style={styles.teamName}>{team2Info?.name}</Text>
           </View>

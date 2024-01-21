@@ -85,6 +85,63 @@ router.post('/register', async (req, res) => {
   }
 });
 
+router.post('/update-user', async (req, res) => {
+  try {
+    const {user_id, oldPassword, newPassword, role, avatar} = req.body;
+
+    const getUserQuery = 'SELECT * FROM users WHERE user_id = $1';
+    const userResult = await postgresClient.query(getUserQuery, [user_id]);
+
+    if (userResult.rows.length !== 1) {
+      return res.status(404).json({message: 'User not found'});
+    }
+
+    const user = userResult.rows[0];
+
+    if (oldPassword && newPassword) {
+      const isPasswordValid = await bcrypt.compare(oldPassword, user.password);
+
+      if (!isPasswordValid) {
+        return res.status(401).json({message: 'Invalid old password'});
+      }
+
+      const hashedNewPassword = await bcrypt.hash(newPassword, 10);
+
+      const updateUserQuery =
+        'UPDATE users SET password = $1, role = $2, avatar = $3 WHERE user_id = $4 RETURNING *';
+
+      const result = await postgresClient.query(updateUserQuery, [
+        hashedNewPassword,
+        role || user.role,
+        avatar || user.avatar,
+        user_id,
+      ]);
+
+      res.status(200).json({
+        message: 'User updated successfully',
+        user: result.rows[0],
+      });
+    } else {
+      const updateUserQuery =
+        'UPDATE users SET role = $1, avatar = $2 WHERE user_id = $3 RETURNING *';
+
+      const result = await postgresClient.query(updateUserQuery, [
+        role || user.role,
+        avatar || user.avatar,
+        user_id,
+      ]);
+
+      res.status(200).json({
+        message: 'User updated successfully',
+        user: result.rows[0],
+      });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({message: 'Failed to update user'});
+  }
+});
+
 router.post('/save-fcm-token', async (req, res) => {
   try {
     const {user_id, fcm_token} = req.body;

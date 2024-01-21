@@ -151,7 +151,10 @@ const FieldOwnerHome = () => {
     <View style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-          <Text style={styles.logoutButtonText}>Logout</Text>
+          <Image
+            source={require('../assets/icons/logout.png')}
+            style={styles.logoutButtonIcon}
+          />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Field Mate</Text>
         <TouchableOpacity
@@ -218,6 +221,11 @@ const FieldOwnerHome = () => {
   );
 };
 const styles = StyleSheet.create({
+  logoutButtonIcon: {
+    width: 24,
+    height: 24,
+    tintColor: 'white',
+  },
   toggleButton: {
     backgroundColor: '#0e1e5b',
     width: '100%',
