@@ -20,6 +20,7 @@ const TeamChatScreen = () => {
   const [reports, setReports] = useState([]);
 
   const teamChatRef = database().ref(`teamChat/${user.team}`);
+  console.log(user.team);
   const API_URL = 'http://192.168.1.33:5000/admin';
 
   useEffect(() => {

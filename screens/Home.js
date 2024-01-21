@@ -212,7 +212,7 @@ const Home = () => {
   const checkUserBanStatus = async () => {
     try {
       const updatedUserResponse = await fetch(
-        `${API_URL}/get-user/${user.user_id}`,
+        `${API_URL}/get-user/${user?.user_id}`,
       );
 
       if (updatedUserResponse.ok) {
@@ -308,9 +308,9 @@ const Home = () => {
 
   const handlePlayerModalClose = () => {
     setPlayerAdInfo({
-      name: user.fullname,
-      role: user.role,
-      avatar: user.avatar,
+      name: user?.fullname,
+      role: user?.role,
+      avatar: user?.avatar,
       availableHours: {start: '', end: ''},
       availableDays: '',
       location: '',
@@ -334,7 +334,7 @@ const Home = () => {
       alternatives: playerAdInfo.alternatives,
     };
 
-    const userId = user.user_id;
+    const userId = user?.user_id;
 
     fetch(`${API_URL}/save-player-ad/${userId}`, {
       method: 'POST',
@@ -472,7 +472,7 @@ const Home = () => {
   };
   const handleInvitePress = async playerAd => {
     try {
-      if (playerAd.user_id === user.user_id) {
+      if (playerAd.user_id === user?.user_id) {
         Alert.alert('Error', 'You cannot invite yourself.');
         return;
       }

@@ -217,18 +217,25 @@ router.post('/login', async (req, res) => {
       const user = userResult.rows[0];
 
       if (user) {
-        res.status(200).json({message: 'login success', user});
+        const isPasswordValid = await bcrypt.compare(password, user.password);
+
+        if (isPasswordValid) {
+          res.status(200).json({message: 'Login successful', user});
+        } else {
+          res.status(401).json({message: 'Login failed - Invalid password'});
+        }
       } else {
-        res.status(401).json({message: 'login failed'});
+        res.status(401).json({message: 'Login failed - User not found'});
       }
     } else {
-      res.status(401).json({message: 'login failed'});
+      res.status(401).json({message: 'Login failed - User not found'});
     }
   } catch (error) {
     console.error(error);
-    res.status(500).json({message: 'login failed'});
+    res.status(500).json({message: 'Login failed'});
   }
 });
+
 router.get('/get-user/:user_id', async (req, res) => {
   try {
     const userId = req.params.user_id;
@@ -1006,7 +1013,7 @@ router.post('/reject-match-request', async (req, res) => {
     res.status(500).json({message: 'Failed to reject match request'});
   }
 });
-router.post('/leave-team', async (req, res) => {
+router.post('/leave-match', async (req, res) => {
   try {
     const {match_id, user_id} = req.body;
 

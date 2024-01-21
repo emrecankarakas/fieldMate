@@ -40,7 +40,7 @@ const ReservationScreen = ({navigation}) => {
     try {
       Alert.alert(
         'Confirm',
-        'Are you sure you want to leave the team?',
+        'Are you sure you want to leave the match?',
         [
           {
             text: 'Cancel',
@@ -50,7 +50,7 @@ const ReservationScreen = ({navigation}) => {
             text: 'Leave',
             onPress: async () => {
               const response = await fetch(
-                'http://192.168.1.33:5000/users/leave-team',
+                'http://192.168.1.33:5000/users/leave-match',
                 {
                   method: 'POST',
                   headers: {

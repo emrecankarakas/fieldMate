@@ -44,7 +44,7 @@ const ChatScreen = ({route}) => {
     try {
       if (user) {
         const newMessageData = {
-          sender: user.username,
+          sender: user?.username,
           receiver: userName,
           text: newMessage,
           timestamp: Date.now(),
@@ -69,8 +69,8 @@ const ChatScreen = ({route}) => {
           .map(key => ({id: key, ...data[key]}))
           .filter(
             item =>
-              (item.sender === user.username && item.receiver === userName) ||
-              (item.sender === userName && item.receiver === user.username),
+              (item.sender === user?.username && item.receiver === userName) ||
+              (item.sender === userName && item.receiver === user?.username),
           )
           .sort((a, b) => a.timestamp - b.timestamp);
 
@@ -131,7 +131,7 @@ const ChatScreen = ({route}) => {
         },
         body: JSON.stringify({
           selectedMessage,
-          reporter: user.username,
+          reporter: user?.username,
           reason: 'Humiliation, insulting, swearing',
         }),
       });
@@ -171,7 +171,7 @@ const ChatScreen = ({route}) => {
   const isAlreadyReported = senderUsername => {
     return reports.some(report => {
       return (
-        report.reporter_username === user.username &&
+        report.reporter_username === user?.username &&
         report.reported_username === senderUsername
       );
     });
@@ -190,19 +190,19 @@ const ChatScreen = ({route}) => {
           <View
             style={[
               styles.messageContainer,
-              item.sender === user.username
+              item.sender === user?.username
                 ? styles.senderMessageContainer
                 : styles.receiverMessageContainer,
             ]}>
             <TouchableOpacity
               style={[
                 styles.messageBubble,
-                item.sender === user.username
+                item.sender === user?.username
                   ? styles.senderBubble
                   : styles.receiverBubble,
               ]}
               onLongPress={() => {
-                if (item.sender !== user.username) {
+                if (item.sender !== user?.username) {
                   handleLongPress(item);
                 }
               }}>

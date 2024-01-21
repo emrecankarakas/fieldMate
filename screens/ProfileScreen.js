@@ -33,7 +33,7 @@ const avatarOptions = [
 const ProfileScreen = ({navigation}) => {
   const {user, logoutUser, updateUser} = useAuth();
   const [isEditVisible, setEditVisible] = useState(false);
-  const [selectedRole, setSelectedRole] = useState(user.role);
+  const [selectedRole, setSelectedRole] = useState(user?.role);
   const [selectedAvatar, setSelectedAvatar] = useState();
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [open, setOpen] = useState(false);
@@ -73,7 +73,7 @@ const ProfileScreen = ({navigation}) => {
       }
 
       const updatedUser = {
-        user_id: user.user_id,
+        user_id: user?.user_id,
         oldPassword: currentPassword,
         newPassword: newPassword,
         role: selectedRole,

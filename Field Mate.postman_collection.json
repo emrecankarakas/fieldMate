@@ -1,0 +1,1192 @@
+{
+	"info": {
+		"_postman_id": "46e3e4e6-7127-424f-bf00-17870f58d3be",
+		"name": "Field Mate",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "24772600"
+	},
+	"item": [
+		{
+			"name": "User",
+			"item": [
+				{
+					"name": "Register",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"email\": \"example@example.com\",\r\n  \"username\": \"example_username\"\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:5000/users/register",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"users",
+								"register"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update User",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"user_id\": \"deneme\",\r\n  \"oldPassword\": \"deneme\",\r\n  \"newPassword\": \"deneme1\",\r\n  \"role\": \"asdf\",\r\n  \"avatar\": \"avatar1\"\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:5000/users/update-user",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"users",
+								"update-user"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Verify Otp",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"otpEntered\": \"1234\",\r\n  \"fullname\": \"Emrecan Karakaş\",\r\n  \"email\": \"emrecan.karakas@hotmail.com\",\r\n  \"password\": \"1234\",\r\n  \"role\": \"goalkeeper\",\r\n  \"age\": 1574923680000,\r\n  \"avatar\": \"avatar1\",\r\n  \"username\": \"emrecan3211\"\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:5000/users/verify-otp",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"users",
+								"verify-otp"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Login",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n \"email\": \"emrecan.karakas@hotmail.com\",\r\n  \"password\": \"1234\",\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:5000/users/login",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"users",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get User by Id",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:5000/users/get-user/0ca4604a-e554-4b43-b52c-dfbb26d21778",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"users",
+								"get-user",
+								"0ca4604a-e554-4b43-b52c-dfbb26d21778"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Add Friend",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"user_id\": \"0ca4604a-e554-4b43-b52c-dfbb26d21778\",\r\n  \"friendId\": \"1231\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:5000/users/add-friend",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"users",
+								"add-friend"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Reject Friend Request",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"user_id\": \"0ca4604a-e554-4b43-b52c-dfbb26d21778\",\r\n  \"friendRequestId\": \"2\"\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:5000/users/reject-friend-request",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"users",
+								"reject-friend-request"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Remove Friend",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"user_id\": \"0ca4604a-e554-4b43-b52c-dfbb26d21778\",\r\n  \"friendId\": \"2\"\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:5000/users/remove-friend",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"users",
+								"remove-friend"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Friends",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:5000/users/get-friends/0ca4604a-e554-4b43-b52c-dfbb26d21778",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"users",
+								"get-friends",
+								"0ca4604a-e554-4b43-b52c-dfbb26d21778"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Friend Requests",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:5000/users/get-friend-requests/0ca4604a-e554-4b43-b52c-dfbb26d21778",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"users",
+								"get-friend-requests",
+								"0ca4604a-e554-4b43-b52c-dfbb26d21778"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Accept Friend Request",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"user_id\": \"0ca4604a-e554-4b43-b52c-dfbb26d21778\",\r\n  \"friendRequestId\": \"5\"\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:5000/users/accept-friend-request",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"users",
+								"accept-friend-request"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Search User",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:5000/users/search-user/emre",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"users",
+								"search-user",
+								"emre"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Team Player",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"updatedPlayer\": {\r\n    \"user_id\": \"0ca4604a-e554-4b43-b52c-dfbb26d21778\",\r\n    \"fullname\": \"Updated Player\",\r\n    \"email\": \"deneme@hotmail.com\",\r\n    \"role\": \"CM2\",\r\n    \"age\": 25,\r\n    \"username\": \"emrecan3211\",\r\n    \"avatar\": \"avatar1\",\r\n    \"team\": \"19\"\r\n  },\r\n   \"captainName\": \"Emre\"\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:5000/users/update-team-player/19/GK",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"users",
+								"update-team-player",
+								"19",
+								"GK"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Team",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"teamName\": \"New Team\",\r\n  \"captainId\": \"0ca4604a-e554-4b43-b52c-dfbb26d21778\",\r\n  \"selectedPlayers\": {\r\n    \"GK\": {\r\n      \"user_id\": \"0ca4604a-e554-4b43-b52c-dfbb26d21778\",\r\n      \"fullname\": \"Player 1\",\r\n      \"email\": \"player1@example.com\",\r\n      \"role\": \"role1\",\r\n      \"age\": 25,\r\n      \"username\": \"player_username_1\",\r\n      \"avatar\": \"player_avatar_url_1\",\r\n      \"team\": \"1\"\r\n    },\r\n    \"CM1\": {\r\n      \"user_id\": \"0ca4604a-e554-4b43-b52c-dfbb26d21778\",\r\n      \"fullname\": \"Player 2\",\r\n      \"email\": \"player2@example.com\",\r\n      \"role\": \"role2\",\r\n      \"age\": 30,\r\n      \"username\": \"player_username_2\",\r\n      \"avatar\": \"player_avatar_url_2\",\r\n      \"team\": \"1\"\r\n    },\r\n    \"CM2\": {\r\n      \"user_id\": \"0ca4604a-e554-4b43-b52c-dfbb26d21778\",\r\n      \"fullname\": \"Player 1\",\r\n      \"email\": \"player1@example.com\",\r\n      \"role\": \"role1\",\r\n      \"age\": 25,\r\n      \"username\": \"player_username_1\",\r\n      \"avatar\": \"player_avatar_url_1\",\r\n      \"team\": \"1\"\r\n    },\r\n    \"CM3\": {\r\n      \"user_id\": \"0ca4604a-e554-4b43-b52c-dfbb26d21778\",\r\n      \"fullname\": \"Player 2\",\r\n      \"email\": \"player2@example.com\",\r\n      \"role\": \"role2\",\r\n      \"age\": 30,\r\n      \"username\": \"player_username_2\",\r\n      \"avatar\": \"player_avatar_url_2\",\r\n      \"team\": \"1\"\r\n    },\r\n        \"CB1\": {\r\n      \"user_id\": \"0ca4604a-e554-4b43-b52c-dfbb26d21778\",\r\n      \"fullname\": \"Player 1\",\r\n      \"email\": \"player1@example.com\",\r\n      \"role\": \"role1\",\r\n      \"age\": 25,\r\n      \"username\": \"player_username_1\",\r\n      \"avatar\": \"player_avatar_url_1\",\r\n      \"team\": \"1\"\r\n    },\r\n    \"CB2\": {\r\n      \"user_id\": \"0ca4604a-e554-4b43-b52c-dfbb26d21778\",\r\n      \"fullname\": \"Player 2\",\r\n      \"email\": \"player2@example.com\",\r\n      \"role\": \"role2\",\r\n      \"age\": 30,\r\n      \"username\": \"player_username_2\",\r\n      \"avatar\": \"player_avatar_url_2\",\r\n      \"team\": \"1\"\r\n    },\r\n    \"CB3\": {\r\n      \"user_id\": \"0ca4604a-e554-4b43-b52c-dfbb26d21778\",\r\n      \"fullname\": \"Player 2\",\r\n      \"email\": \"player2@example.com\",\r\n      \"role\": \"role2\",\r\n      \"age\": 30,\r\n      \"username\": \"player_username_2\",\r\n      \"avatar\": \"player_avatar_url_2\",\r\n      \"team\": \"1\"\r\n    }\r\n  },\r\n  \"captainName\": \"Captain Name\"\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:5000/users/create-team",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"users",
+								"create-team"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Accept Team Request",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"user_id\": \"0ca4604a-e554-4b43-b52c-dfbb26d21778\",\r\n  \"requestId\": \"2\"\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:5000/users/accept-team-request",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"users",
+								"accept-team-request"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Remove Team Player",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"teamId\": \"19\",\r\n  \"role\": \"GK\",\r\n  \"userId\": \"0ca4604a-e554-4b43-b52c-dfbb26d21778\"\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:5000/users/remove-team-player",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"users",
+								"remove-team-player"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Reject Team Request",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"receiver_id\": \"0ca4604a-e554-4b43-b52c-dfbb26d21778\",\r\n  \"team_id\": \"19\",\r\n  \"role\": \"GK\"\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:5000/users/reject-team-request",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"users",
+								"reject-team-request"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Team Request",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:5000/users/get-team-requests/0ca4604a-e554-4b43-b52c-dfbb26d21778",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"users",
+								"get-team-requests",
+								"0ca4604a-e554-4b43-b52c-dfbb26d21778"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Captain",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"newCaptainId\": \"0ca4604a-e554-4b43-b52c-dfbb26d21778\"\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:5000/users/update-captain/19",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"users",
+								"update-captain",
+								"19"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Team",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:5000/users/get-team/19",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"users",
+								"get-team",
+								"19"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Save PlayerAd",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"name\": \"Player Name\",\r\n  \"role\": \"Player Role\",\r\n  \"avatar\": \"player_avatar_url\",\r\n  \"availableHours\": \"Available Hours\",\r\n  \"availableDays\": [\"Monday\", \"Wednesday\"],\r\n  \"location\": \"Player Location\",\r\n  \"alternatives\": [\"Alternative 1\", \"Alternative 2\"]\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:5000/users/save-player-ad/0ca4604a-e554-4b43-b52c-dfbb26d21778",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"users",
+								"save-player-ad",
+								"0ca4604a-e554-4b43-b52c-dfbb26d21778"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Gel All Player Ads",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:5000/users/get-all-player-ads",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"users",
+								"get-all-player-ads"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Match",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"fieldInfo\": { \"field_name\": \"Field 1\", \"location\": \"Location 1\" },\r\n  \"fieldId\": \"123123\",\r\n  \"team1Info\": {\"name\": \"Team B\",\r\n          \"players\": [\r\n            {\"position\": \"GK\",\"isFull\": false, \"userId\": null},\r\n            {\"position\": \"CB1\", \"isFull\": false, \"userId\": null},\r\n            {\"position\": \"CB2\", \"isFull\": false, \"userId\": null},\r\n            {\"position\": \"CB3\", \"isFull\": false, \"userId\": null},\r\n            {\"position\": \"CM1\", \"isFull\": false, \"userId\": null},\r\n            {\"position\": \"CM2\", \"isFull\": false, \"userId\": null},\r\n            {\"position\": \"CF\", \"isFull\": false, \"userId\": null}\r\n          ]},\r\n  \"team2Info\": { {\"name\": \"Team A\",\r\n          \"players\": [\r\n            {\"position\": \"GK\",\"isFull\": false, \"userId\": null},\r\n            {\"position\": \"CB1\", \"isFull\": false, \"userId\": null},\r\n            {\"position\": \"CB2\", \"isFull\": false, \"userId\": null},\r\n            {\"position\": \"CB3\", \"isFull\": false, \"userId\": null},\r\n            {\"position\": \"CM1\", \"isFull\": false, \"userId\": null},\r\n            {\"position\": \"CM2\", \"isFull\": false, \"userId\": null},\r\n            {\"position\": \"CF\", \"isFull\": false, \"userId\": null}\r\n          ] },\r\n  \"userId\": \"0ca4604a-e554-4b43-b52c-dfbb26d21778\",\r\n  \"reservation_id\": \"123123123\"\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:5000/users/create-match",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"users",
+								"create-match"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Matches",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:5000/users/get-all-matches",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"users",
+								"get-all-matches"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Matches by User",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:5000/users/get-matches-by-user/0ca4604a-e554-4b43-b52c-dfbb26d21778",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"users",
+								"get-matches-by-user",
+								"0ca4604a-e554-4b43-b52c-dfbb26d21778"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Send Match Invite",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"match_id\": \"1\",\r\n  \"receiver_id\": \"1\",\r\n  \"sender_id\": \"s1\",\r\n  \"position\": \"cb\",\r\n  \"field_info\": {\"location\": \"deneme\",\r\n  \"date\": \"10 ocak\",\r\n  \"time\": \"10:00AM\"},\r\n  \"team_name\": \"deneme\"\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:5000/users/send-match-invitation",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"users",
+								"send-match-invitation"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Match Request by User",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:5000/users/get-match-requests/0ca4604a-e554-4b43-b52c-dfbb26d21778",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"users",
+								"get-match-requests",
+								"0ca4604a-e554-4b43-b52c-dfbb26d21778"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Accept Match Request",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"match_id\": \"1\",\r\n  \"match_request_id\": \"1\",\r\n  \"team_name\": \"Team A\",\r\n  \"user_id\": \"0ca4604a-e554-4b43-b52c-dfbb26d21778\",\r\n  \"position\": \"CB\"\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:5000/users/accept-match-request",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"users",
+								"accept-match-request"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Reject Match Request",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"match_request_id\": \"1\"\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:5000/users/reject-match-request",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"users",
+								"reject-match-request"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Leave Match",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"match_id\": \"19\",\r\n  \"user_id\": \"0ca4604a-e554-4b43-b52c-dfbb26d21778\"\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:5000/users/leave-match",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"users",
+								"leave-match"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Admin",
+			"item": [
+				{
+					"name": "Report",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"selectedMessage\": {\r\n    \"sender\": \"emrecan3211\",\r\n    \"text\": \"Reported message\"\r\n  },\r\n  \"reporter\": \"emrecan32111\",\r\n  \"reason\": \"Reason for report\"\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:5000/admin/report",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"admin",
+								"report"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Reports",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:5000/admin/get-reports",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"admin",
+								"get-reports"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Ban User and Delete Report",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:5000/admin/ban-user/18",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"admin",
+								"ban-user",
+								"18"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Report",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:5000/admin/delete-report/18",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"admin",
+								"delete-report",
+								"18"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Remove Ban",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:5000/admin/remove-ban/18",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"admin",
+								"remove-ban",
+								"18"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Add FieldOwner",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"email\": \"test_fieldowner\",\r\n  \"password\": \"1234\",\r\n  \"fullName\": \"testField owner\",\r\n  \"userName\": \"test field owner\"\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:5000/admin/add-field-owner",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"admin",
+								"add-field-owner"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Field",
+			"item": [
+				{
+					"name": "Add Hour to Field",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"newHours\": [\"09:00 AM\", \"10:00 PM\"]\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:5000/field/add-hour/15",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"field",
+								"add-hour",
+								"15"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Remove Hour From Field",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"hourToRemove\": \"09:00 AM\"\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:5000/field/remove-hour/15",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"field",
+								"remove-hour",
+								"15"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Reserve Field",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"fieldId\": \"15\",\r\n  \"userId\": \"0ca4604a-e554-4b43-b52c-dfbb26d21778\",\r\n  \"reservedHour\": \"09:00 AM\",\r\n  \"reservedDate\": \"2024-01-21\"\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:5000/field/reserve-field",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"field",
+								"reserve-field"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Field Info",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:5000/field/get-field/15",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"field",
+								"get-field",
+								"15"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Fields by Owner",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:5000/field/get-fields-by-owner/0ca4604a-e554-4b43-b52c-dfbb26d21778",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"field",
+								"get-fields-by-owner",
+								"0ca4604a-e554-4b43-b52c-dfbb26d21778"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Fields",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:5000/field/get-all-fields",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"field",
+								"get-all-fields"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Reservations by Owner",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:5000/field/get-reservations-by-owner/0ca4604a-e554-4b43-b52c-dfbb26d21778",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"field",
+								"get-reservations-by-owner",
+								"0ca4604a-e554-4b43-b52c-dfbb26d21778"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Reservations by User",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:5000/field/get-reservations-by-user/0ca4604a-e554-4b43-b52c-dfbb26d21778",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"field",
+								"get-reservations-by-user",
+								"0ca4604a-e554-4b43-b52c-dfbb26d21778"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Reservations",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:5000/field/get-all-reservations",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"field",
+								"get-all-reservations"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Cancel Reservation",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:5000/field/cancel-reservation/15",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"field",
+								"cancel-reservation",
+								"15"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}

@@ -1,4 +1,4 @@
-import React, {useState, useContext} from 'react';
+import React, {useState} from 'react';
 import {
   View,
   Text,
@@ -49,7 +49,7 @@ const LoginScreen = ({navigation}) => {
       if (response.status === 200) {
         const {user, fcmToken} = response.data;
         console.log(user);
-        if (user.is_banned === 1) {
+        if (user?.is_banned === 1) {
           alert(
             'Your account has been banned. Please contact support for further information.',
           );
