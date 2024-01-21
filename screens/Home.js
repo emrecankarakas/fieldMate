@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useCallback} from 'react';
 import {
   View,
   StyleSheet,
@@ -33,11 +33,21 @@ const Home = () => {
   const [isStartTimePickerVisible, setStartTimePickerVisible] = useState(false);
   const [isEndTimePickerVisible, setEndTimePickerVisible] = useState(false);
   const [isFilterModalVisible, setFilterModalVisible] = useState(false);
+  const [isFilterMatchModalVisible, setFilterMatchModalVisible] =
+    useState(false);
+  const [isFilterFieldModalVisible, setFilterFieldModalVisible] =
+    useState(false);
   const [receiverPlayer, setReceiverPlayer] = useState(null);
   const [filterOptions, setFilterOptions] = useState({
     location: null,
     day: [],
     role: [],
+  });
+  const [filterMatchOptions, setFilterMatchOptions] = useState({
+    emptyRoles: [],
+  });
+  const [filterFieldOptions, setFilterFieldOptions] = useState({
+    emptyHours: [],
   });
   const [matchAd, setMatchAd] = useState(null);
   const [playerAdInfo, setPlayerAdInfo] = useState({
@@ -49,6 +59,24 @@ const Home = () => {
     location: '',
     alternatives: '',
   });
+
+  const handleTabPress = tab => {
+    setFilterMatchModalVisible(false);
+    setFilterModalVisible(false);
+    setFilterFieldModalVisible(false);
+    setFilterMatchOptions({
+      emptyRoles: [],
+    });
+    setFilterFieldOptions({
+      emptyHours: [],
+    });
+    setFilterOptions({
+      location: null,
+      day: [],
+      role: [],
+    });
+    setActiveTab(tab);
+  };
   const isUserInTeam = teamInfo => {
     return teamInfo.players.some(player => player.userId === user.user_id);
   };
@@ -114,8 +142,9 @@ const Home = () => {
   };
 
   const handleApplyFilter = () => {
-    console.log('Applying filter:', filterOptions);
+    setFilterMatchModalVisible(false);
     setFilterModalVisible(false);
+    setFilterFieldModalVisible(false);
   };
 
   const handleLocationInputChange = text => {
@@ -277,10 +306,6 @@ const Home = () => {
     fetchMatches();
   }, [activeTab]);
 
-  const handleTabPress = tab => {
-    setFilterModalVisible(false);
-    setActiveTab(tab);
-  };
   const handlePlayerModalClose = () => {
     setPlayerAdInfo({
       name: user.fullname,
@@ -651,13 +676,133 @@ const Home = () => {
     setEndTimePickerVisible(false);
   };
 
+  const handleFilterMatchRolePress = selectedRole => {
+    const selectedRoles = [...filterMatchOptions.emptyRoles];
+
+    if (selectedRoles.includes(selectedRole)) {
+      const index = selectedRoles.indexOf(selectedRole);
+      selectedRoles.splice(index, 1);
+    } else {
+      selectedRoles.push(selectedRole);
+    }
+
+    setFilterMatchOptions(prevOptions => ({
+      ...prevOptions,
+      emptyRoles: selectedRoles,
+    }));
+  };
+
+  const renderFilterMatchRolesSelector = () => (
+    <View style={styles.rolesSelector}>
+      {['GK', 'CB1', 'CB2', 'CB3', 'CM1', 'CM2', 'CF'].map(role => (
+        <TouchableOpacity
+          key={role}
+          style={[
+            styles.roleButton,
+            {
+              backgroundColor: filterMatchOptions.emptyRoles.includes(role)
+                ? '#0e1e5b'
+                : '#D9D9D9',
+            },
+          ]}
+          onPress={() => handleFilterMatchRolePress(role)}>
+          <Text
+            style={{
+              color: filterMatchOptions.emptyRoles.includes(role)
+                ? 'white'
+                : 'black',
+            }}>
+            {role}
+          </Text>
+        </TouchableOpacity>
+      ))}
+    </View>
+  );
+
+  const handleAddFilterButton = () => {
+    if (activeTab === 'matches') {
+      setFilterMatchModalVisible(true);
+    }
+    if (activeTab === 'players') {
+      setFilterModalVisible(true);
+    }
+    if (activeTab === 'fields') {
+      setFilterFieldModalVisible(true);
+    }
+  };
+  const handleFilterHourPress = selectedHour => {
+    const formattedHour =
+      selectedHour < 12
+        ? `${selectedHour.toString().padStart(2, '0')}:00 AM`
+        : `${(selectedHour % 12).toString().padStart(2, '0')}:00 PM`;
+
+    const selectedHours = [...filterFieldOptions.emptyHours];
+
+    if (selectedHours.includes(formattedHour)) {
+      const index = selectedHours.indexOf(formattedHour);
+      selectedHours.splice(index, 1);
+    } else {
+      selectedHours.push(formattedHour);
+    }
+
+    setFilterFieldOptions(prevOptions => ({
+      ...prevOptions,
+      emptyHours: selectedHours,
+    }));
+  };
+
+  const renderFilterHoursSelector = useCallback(() => {
+    const isHourSelected = formattedHour =>
+      filterFieldOptions.emptyHours.includes(formattedHour);
+
+    return (
+      <View style={styles.hoursSelector}>
+        {[0, 1, 2, 3, 4, 5].map(row => (
+          <View key={row} style={styles.hourRow}>
+            {Array.from({length: 4}, (_, index) => index + row * 4).map(
+              hour => {
+                const formattedHour =
+                  hour < 12
+                    ? `${hour.toString().padStart(2, '0')}:00 AM`
+                    : `${(hour % 12).toString().padStart(2, '0')}:00 PM`;
+
+                return (
+                  <TouchableOpacity
+                    key={hour}
+                    style={[
+                      styles.hourButton,
+                      {
+                        backgroundColor: isHourSelected(formattedHour)
+                          ? '#0e1e5b'
+                          : '#D9D9D9',
+                      },
+                    ]}
+                    onPress={() => handleFilterHourPress(hour)}>
+                    <Text
+                      style={{
+                        color: isHourSelected(formattedHour)
+                          ? 'white'
+                          : 'black',
+                      }}>
+                      {formattedHour}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              },
+            )}
+          </View>
+        ))}
+      </View>
+    );
+  }, [filterFieldOptions.emptyHours, handleFilterHourPress, handleApplyFilter]);
+
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#0E1E5B" />
       <TopMenu activeTab={activeTab} onTabPress={handleTabPress} />
       <TouchableOpacity
         style={styles.addFilterBtn}
-        onPress={() => setFilterModalVisible(true)}>
+        onPress={() => handleAddFilterButton()}>
         <View>
           <Text style={{color: 'white'}}>Add Filter</Text>
         </View>
@@ -684,19 +829,43 @@ const Home = () => {
                 </View>
               ))
           : activeTab === 'matches'
-          ? matchAd?.map((matchAd, index) => (
-              <View key={index}>
-                <MatchAd
-                  joinable={true}
-                  fieldInfo={matchAd.field_info}
-                  team1Info={matchAd.team1_info}
-                  team2Info={matchAd.team2_info}
-                  onJoinPress={() => handleJoinPress(matchAd)}
-                />
-              </View>
-            ))
+          ? matchAd
+              ?.filter(matchAd => {
+                const emptyRolesMatch =
+                  !filterMatchOptions.emptyRoles.length ||
+                  matchAd.team1_info.players.some(
+                    player =>
+                      !player.isFull &&
+                      filterMatchOptions.emptyRoles.includes(player.position),
+                  ) ||
+                  matchAd.team2_info.players.some(
+                    player =>
+                      !player.isFull &&
+                      filterMatchOptions.emptyRoles.includes(player.position),
+                  );
+
+                return emptyRolesMatch;
+              })
+              .map((filteredMatchAd, index) => (
+                <View key={index}>
+                  <MatchAd
+                    joinable={true}
+                    fieldInfo={filteredMatchAd.field_info}
+                    team1Info={filteredMatchAd.team1_info}
+                    team2Info={filteredMatchAd.team2_info}
+                    onJoinPress={() => handleJoinPress(filteredMatchAd)}
+                  />
+                </View>
+              ))
           : activeTab === 'fields'
-          ? allFields.map((field, index) => (
+          ? (filterFieldOptions.emptyHours.length
+              ? allFields.filter(field =>
+                  filterFieldOptions.emptyHours.every(hour =>
+                    field.open_hours.includes(hour),
+                  ),
+                )
+              : allFields
+            ).map((field, index) => (
               <View key={index}>
                 <FieldAd fieldInfo={field} />
               </View>
@@ -751,6 +920,24 @@ const Home = () => {
                 setInviteModalVisible(false);
               }}>
               <Text style={styles.closeButtonText}>Close</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={isFilterMatchModalVisible}
+        onRequestClose={() => setFilterMatchModalVisible(false)}>
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <Text style={styles.addPlayerTitle}>Filter By Empty Roles:</Text>
+            {renderFilterMatchRolesSelector()}
+
+            <TouchableOpacity
+              onPress={handleApplyFilter}
+              style={styles.filterBtn}>
+              <Text style={{color: 'white'}}>Apply Filter</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -864,6 +1051,25 @@ const Home = () => {
           </View>
         </View>
       </Modal>
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={isFilterFieldModalVisible}
+        onRequestClose={() => setFilterFieldModalVisible(false)}>
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <Text style={styles.addPlayerTitle}>Filter By Hours:</Text>
+
+            {renderFilterHoursSelector()}
+
+            <TouchableOpacity
+              onPress={handleApplyFilter}
+              style={styles.filterBtn}>
+              <Text style={{color: 'white'}}>Apply Filter</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
       <DateTimePickerModal
         isVisible={isStartTimePickerVisible}
         mode="time"
@@ -881,6 +1087,25 @@ const Home = () => {
 };
 
 const styles = StyleSheet.create({
+  hoursSelector: {
+    flexDirection: 'column',
+    alignItems: 'center',
+    paddingVertical: 10,
+  },
+  hourButton: {
+    flexDirection: 'row',
+    padding: 4,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#0e1e5b',
+    marginHorizontal: 2,
+    marginBottom: 10,
+  },
+  hourRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+  },
+
   inviteModalContainer: {
     padding: 20,
     borderRadius: 10,
