@@ -23,6 +23,7 @@ const Home = () => {
   const [allFields, setAllFields] = useState([]);
   const [isPlayerModalVisible, setPlayerModalVisible] = useState(false);
   const [inviteModalVisible, setInviteModalVisible] = useState(false);
+  const [joinModalVisible, setJoinModalVisible] = useState(false);
   const [selectedMatch, setSelectedMatch] = useState(null);
   const [selectStartDate, setSelectStartDate] = useState(null);
   const [selectEndDate, setSelectEndDate] = useState(null);
@@ -48,6 +49,34 @@ const Home = () => {
     location: '',
     alternatives: '',
   });
+  const isUserInTeam = teamInfo => {
+    return teamInfo.players.some(player => player.userId === user.user_id);
+  };
+  const handleJoinPress = async matchAd => {
+    setSelectedMatch(matchAd);
+
+    const isUserInTeam1 = isUserInTeam(matchAd.team1_info);
+    const isUserInTeam2 = isUserInTeam(matchAd.team2_info);
+
+    if (isUserInTeam1 || isUserInTeam2) {
+      Alert.alert('Error', 'You are already in this match.');
+      return;
+    }
+
+    const emptyPositionInTeam1 = matchAd.team1_info.players.find(
+      player => !player.isFull,
+    );
+
+    const emptyPositionInTeam2 = matchAd.team2_info.players.find(
+      player => !player.isFull,
+    );
+
+    if (emptyPositionInTeam1 || emptyPositionInTeam2) {
+      setJoinModalVisible(true);
+    } else {
+      Alert.alert('Error', 'No empty positions available in either team.');
+    }
+  };
 
   const API_URL = 'http://192.168.1.33:5000/users';
 
@@ -199,6 +228,7 @@ const Home = () => {
       ))}
     </View>
   );
+
   const handleFilterRolePress = selectedRole => {
     const selectedRoles = [...filterOptions.role];
 
@@ -229,6 +259,7 @@ const Home = () => {
       console.error('Error fetching matches:', error);
     }
   };
+
   const fetchPlayerAds = async () => {
     fetch(`${API_URL}/get-all-player-ads`)
       .then(response => response.json())
@@ -410,6 +441,10 @@ const Home = () => {
       ))}
     </View>
   );
+  const handleSelectMatch = match => {
+    setSelectedMatch(match);
+    setInviteModalVisible(true);
+  };
   const handleInvitePress = async playerAd => {
     try {
       if (playerAd.user_id === user.user_id) {
@@ -429,6 +464,34 @@ const Home = () => {
     } catch (error) {
       console.error('Error fetching matches:', error);
       Alert.alert('Error', 'Failed to fetch matches.');
+    }
+  };
+  const joinTeam = async (position, team) => {
+    try {
+      const response = await fetch(`${API_URL}/accept-match-request`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          match_id: selectedMatch.match_id,
+          match_request_id: selectedMatch.match_request_id,
+          team_name: team,
+          user_id: user.user_id,
+          position: position,
+        }),
+      });
+
+      if (response.ok) {
+        fetchMatches();
+        Alert.alert('Success', 'You joined the team.');
+        setJoinModalVisible(false);
+      } else {
+        Alert.alert('Error', '');
+      }
+    } catch (error) {
+      console.error('Error joining team:', error);
+      Alert.alert('Error', 'Failed to join team');
     }
   };
 
@@ -520,9 +583,38 @@ const Home = () => {
       {cancelable: false},
     );
   };
+  const handlePositionPressForJoin = (position, team) => {
+    Alert.alert(
+      'Send Invite',
+      `Dou you want to join for team: ${team} and position: ${position}`,
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Join',
+          onPress: () => joinTeam(position, team),
+        },
+      ],
+      {cancelable: false},
+    );
+  };
 
+  const renderEmptyPositionsForJoin = team => {
+    return team?.players
+      .filter(player => !player.isFull)
+      .map(player => (
+        <TouchableOpacity
+          key={player.position}
+          onPress={() => handlePositionPressForJoin(player.position, team.name)}
+          style={styles.emptyPositionButton}>
+          <Text style={styles.emptyPositionText}>{player.position}</Text>
+        </TouchableOpacity>
+      ));
+  };
   const renderEmptyPositions = team => {
-    return team.players
+    return team?.players
       .filter(player => !player.isFull)
       .map(player => (
         <TouchableOpacity
@@ -595,9 +687,11 @@ const Home = () => {
           ? matchAd?.map((matchAd, index) => (
               <View key={index}>
                 <MatchAd
+                  joinable={true}
                   fieldInfo={matchAd.field_info}
                   team1Info={matchAd.team1_info}
                   team2Info={matchAd.team2_info}
+                  onJoinPress={() => handleJoinPress(matchAd)}
                 />
               </View>
             ))
@@ -733,7 +827,43 @@ const Home = () => {
           </View>
         </View>
       </Modal>
-
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={joinModalVisible}
+        onRequestClose={() => {
+          setSelectedMatch(null);
+          setJoinModalVisible(false);
+        }}>
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent2}>
+            <ScrollView>
+              <View style={styles.matchContainer}>
+                <View style={styles.teamContainer}>
+                  <Text style={styles.teamHeading}>
+                    {selectedMatch?.team1_info.name}
+                  </Text>
+                  {renderEmptyPositionsForJoin(selectedMatch?.team1_info)}
+                </View>
+                <View style={styles.teamContainer}>
+                  <Text style={styles.teamHeading}>
+                    {selectedMatch?.team2_info.name}
+                  </Text>
+                  {renderEmptyPositionsForJoin(selectedMatch?.team2_info)}
+                </View>
+              </View>
+            </ScrollView>
+            <TouchableOpacity
+              style={styles.closeButton}
+              onPress={() => {
+                setSelectedMatch(null);
+                setJoinModalVisible(false);
+              }}>
+              <Text style={styles.closeButtonText}>Close</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
       <DateTimePickerModal
         isVisible={isStartTimePickerVisible}
         mode="time"

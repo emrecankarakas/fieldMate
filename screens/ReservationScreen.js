@@ -13,11 +13,15 @@ import {
 import {useAuth} from '../AuthContext';
 import BottomMenu from '../components/BottomMenu';
 import ReservationTopMenu from '../components/ReservationTopMenu';
+import MatchAd from '../components/MatchAd';
+import {ScrollView} from 'react-native-gesture-handler';
 
 const ReservationScreen = ({navigation}) => {
   const [activeTab, setActiveTab] = useState('matches');
   const [reservedFields, setReservedFields] = useState([]);
   const [matchRequests, setMatchRequests] = useState([]);
+  const [isRoleModalVisible, setRoleModalVisible] = useState(false);
+  const [matchAds, setMatchAds] = useState([]);
   const {user} = useAuth();
   const [selectedReservation, setSelectedReservation] = useState(null);
   const [isCreateMatchModalVisible, setCreateMatchModalVisible] =
@@ -28,8 +32,76 @@ const ReservationScreen = ({navigation}) => {
   useEffect(() => {
     fetchReservationsByUser(user.user_id);
     fetchMatchRequestsByUser(user.user_id);
+    fetchMatches();
   }, [activeTab]);
+  const roleOptions = ['GK', 'CB1', 'CB2', 'CB3', 'CM1', 'CM2', 'CF'];
 
+  const leaveTeam = async matchAd => {
+    try {
+      Alert.alert(
+        'Confirm',
+        'Are you sure you want to leave the team?',
+        [
+          {
+            text: 'Cancel',
+            style: 'cancel',
+          },
+          {
+            text: 'Leave',
+            onPress: async () => {
+              const response = await fetch(
+                'http://192.168.1.33:5000/users/leave-team',
+                {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                  },
+                  body: JSON.stringify({
+                    match_id: matchAd.match_id,
+                    user_id: user.user_id,
+                  }),
+                },
+              );
+
+              if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(
+                  errorData.message || 'Failed to leave the team for the match',
+                );
+              }
+
+              const responseData = await response.json();
+              Alert.alert('Left the team successfully');
+              fetchMatches();
+              return responseData;
+            },
+          },
+        ],
+        {cancelable: false},
+      );
+    } catch (error) {
+      console.error(error);
+
+      throw new Error('Failed to leave the team for the match');
+    }
+  };
+
+  const fetchMatches = async () => {
+    try {
+      const response = await fetch(
+        `http://192.168.1.33:5000/users/get-all-matches`,
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        setMatchAds(data.matches);
+      } else {
+        console.error('Error fetching matches:', response.statusText);
+      }
+    } catch (error) {
+      console.error('Error fetching matches:', error);
+    }
+  };
   const fetchMatchRequestsByUser = async userId => {
     try {
       const response = await fetch(
@@ -42,6 +114,13 @@ const ReservationScreen = ({navigation}) => {
     } catch (error) {
       console.error('Error fetching match requests by user:', error);
     }
+  };
+  const isUserInMatch = (match, userId) => {
+    const allPlayers = [
+      ...match.team1_info.players,
+      ...match.team2_info.players,
+    ];
+    return allPlayers.some(player => player.userId === userId);
   };
   const acceptMatchRequest = async (
     matchId,
@@ -77,6 +156,7 @@ const ReservationScreen = ({navigation}) => {
       Alert.alert('Match request accepted');
       fetchReservationsByUser(user.user_id);
       fetchMatchRequestsByUser(user.user_id);
+      fetchMatches();
       return responseData;
     } catch (error) {
       console.error(error);
@@ -114,7 +194,10 @@ const ReservationScreen = ({navigation}) => {
       throw new Error('Failed to reject match request');
     }
   };
-
+  const handleRoleSelect = role => {
+    handleCreateMatch(role);
+    setRoleModalVisible(false);
+  };
   const fetchReservationsByUser = async userId => {
     try {
       const response = await fetch(
@@ -151,6 +234,79 @@ const ReservationScreen = ({navigation}) => {
   const toggleCreateMatchModal = () => {
     setCreateMatchModalVisible(!isCreateMatchModalVisible);
   };
+  const handleCreateMatch = async role => {
+    try {
+      if (role) {
+        const {
+          reserved_hour,
+          reserved_date,
+          location,
+          field_id,
+          reservation_id,
+        } = selectedReservation;
+
+        const team1Info = {
+          name: 'Team A',
+          players: roleOptions.map(position => ({
+            position,
+            isFull: position === role,
+            userId: position === role ? user.user_id : null,
+          })),
+        };
+
+        const team2Info = {
+          name: 'Team B',
+          players: roleOptions.map(position => ({
+            position,
+            isFull: false,
+            userId: null,
+          })),
+        };
+
+        const requestBody = {
+          team1Info,
+          team2Info,
+          fieldInfo: {
+            time: reserved_hour,
+            day: reserved_date,
+            location: location,
+          },
+          fieldId: field_id,
+          userId: user.user_id,
+          reservation_id,
+        };
+
+        const createMatchResponse = await fetch(
+          'http://192.168.1.33:5000/users/create-match',
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(requestBody),
+          },
+        );
+
+        const createMatchData = await createMatchResponse.json();
+
+        if (createMatchResponse.ok) {
+          setCreateMatchModalVisible(false);
+
+          Alert.alert('Success', createMatchData.message);
+        } else {
+          setCreateMatchModalVisible(false);
+
+          Alert.alert(
+            'Error',
+            createMatchData.message || 'Failed to create match',
+          );
+        }
+      }
+    } catch (error) {
+      console.error('Error creating match:', error);
+    }
+  };
+
   const handleCreateMatchWithTeam = async () => {
     try {
       const teamResponse = await fetch(
@@ -294,7 +450,7 @@ const ReservationScreen = ({navigation}) => {
                         <TouchableOpacity
                           style={styles.createMatchButtonModal}
                           onPress={() => {
-                            toggleCreateMatchModal();
+                            setRoleModalVisible(true);
                           }}>
                           <Text style={styles.createMatchButtonTextModal}>
                             Create Match
@@ -320,13 +476,35 @@ const ReservationScreen = ({navigation}) => {
                         </TouchableOpacity>
                       </View>
                     </Modal>
+                    <Modal
+                      transparent={true}
+                      animationType="slide"
+                      visible={isRoleModalVisible}
+                      onRequestClose={() => setRoleModalVisible(false)}>
+                      <View style={styles.modalContainer}>
+                        <Text style={styles.title}>Select Your Role</Text>
+                        {roleOptions.map((role, index) => (
+                          <TouchableOpacity
+                            key={index}
+                            style={styles.roleButton}
+                            onPress={() => handleRoleSelect(role)}>
+                            <Text style={styles.roleButtonText}>{role}</Text>
+                          </TouchableOpacity>
+                        ))}
+                        <TouchableOpacity
+                          style={styles.cancelButton}
+                          onPress={() => setRoleModalVisible(false)}>
+                          <Text style={styles.cancelButtonText}>Cancel</Text>
+                        </TouchableOpacity>
+                      </View>
+                    </Modal>
                   </View>
                 </View>
               )}
             />
           </>
         ) : (
-          <View style={styles.requestContainer}>
+          <ScrollView style={styles.requestContainer}>
             {matchRequests?.map(request => (
               <View key={request.request_id} style={styles.requestItem}>
                 <Text style={styles.requestName}>{request.fullname}</Text>
@@ -356,7 +534,22 @@ const ReservationScreen = ({navigation}) => {
                 </TouchableOpacity>
               </View>
             ))}
-          </View>
+            <View style={styles.matchContainer}>
+              {matchAds.map((matchAd, index) => (
+                <View key={index}>
+                  {isUserInMatch(matchAd, user.user_id) && (
+                    <MatchAd
+                      joinable={false}
+                      fieldInfo={matchAd.field_info}
+                      team1Info={matchAd.team1_info}
+                      team2Info={matchAd.team2_info}
+                      onLeavePress={() => leaveTeam(matchAd)}
+                    />
+                  )}
+                </View>
+              ))}
+            </View>
+          </ScrollView>
         )}
       </View>
       <BottomMenu />
@@ -365,6 +558,9 @@ const ReservationScreen = ({navigation}) => {
 };
 
 const styles = StyleSheet.create({
+  matchContainer: {
+    marginTop: 20,
+  },
   invitationText: {
     flex: 1,
     fontSize: 16,
@@ -421,7 +617,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
+  roleButton: {
+    backgroundColor: '#0E1E5B',
+    padding: 15,
+    borderRadius: 16,
+    marginVertical: 8,
+    width: '80%',
+    alignItems: 'center',
+  },
 
+  roleButtonText: {
+    color: 'white',
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
   createMatchButtonModal: {
     backgroundColor: '#0E1E5B',
     padding: 15,

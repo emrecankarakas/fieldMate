@@ -949,5 +949,59 @@ router.post('/reject-match-request', async (req, res) => {
     res.status(500).json({message: 'Failed to reject match request'});
   }
 });
+router.post('/leave-team', async (req, res) => {
+  try {
+    const {match_id, user_id} = req.body;
+
+    const findMatchQuery = 'SELECT * FROM matches WHERE match_id = $1';
+    const matchResult = await postgresClient.query(findMatchQuery, [match_id]);
+
+    if (matchResult.rows.length === 0) {
+      return res.status(404).json({message: 'Match not found'});
+    }
+
+    const match = matchResult.rows[0];
+
+    const updatedTeam1Info = updateTeamInfo(match.team1_info, user_id);
+
+    const updatedTeam2Info = updateTeamInfo(match.team2_info, user_id);
+
+    const updateMatchQuery = `
+      UPDATE matches
+      SET
+        team1_info = $1,
+        team2_info = $2
+      WHERE match_id = $3
+      RETURNING *;
+    `;
+
+    const updatedMatchResult = await postgresClient.query(updateMatchQuery, [
+      JSON.stringify(updatedTeam1Info),
+      JSON.stringify(updatedTeam2Info),
+      match_id,
+    ]);
+
+    const updatedMatch = updatedMatchResult.rows[0];
+
+    res.status(200).json({
+      message: 'Player successfully left the team',
+      updatedMatch,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({message: 'Failed to leave the team'});
+  }
+});
+
+function updateTeamInfo(teamInfo, user_id) {
+  const updatedPlayers = teamInfo.players.map(player => {
+    if (player.userId === user_id) {
+      return {...player, isFull: false, userId: null};
+    }
+    return player;
+  });
+
+  return {...teamInfo, players: updatedPlayers};
+}
 
 export default router;

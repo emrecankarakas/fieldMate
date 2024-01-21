@@ -9,7 +9,14 @@ import {
   Linking,
 } from 'react-native';
 
-const MatchAd = ({team1Info, team2Info, fieldInfo}) => {
+const MatchAd = ({
+  team1Info,
+  team2Info,
+  fieldInfo,
+  joinable,
+  onJoinPress,
+  onLeavePress,
+}) => {
   const renderPlayerIcons = players => {
     return players?.map((player, index) => (
       <View
@@ -38,6 +45,7 @@ const MatchAd = ({team1Info, team2Info, fieldInfo}) => {
     )}`;
     Linking.openURL(mapUrl);
   };
+
   return (
     <ScrollView style={styles.matchCard}>
       <View style={styles.teamContainer}>
@@ -86,11 +94,41 @@ const MatchAd = ({team1Info, team2Info, fieldInfo}) => {
           <Text style={styles.locationText}>{fieldInfo?.location}</Text>
         </Text>
       </TouchableOpacity>
+
+      <View style={styles.joinLeaveButtonContainer}>
+        {joinable ? (
+          <TouchableOpacity
+            onPress={onJoinPress}
+            style={styles.joinLeaveButton}>
+            <Text style={styles.joinLeaveButtonText}>Join</Text>
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity
+            onPress={onLeavePress}
+            style={styles.joinLeaveButton}>
+            <Text style={styles.joinLeaveButtonText}>Leave</Text>
+          </TouchableOpacity>
+        )}
+      </View>
     </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
+  joinLeaveButtonContainer: {
+    alignItems: 'center',
+    marginTop: 12,
+  },
+  joinLeaveButton: {
+    backgroundColor: '#0E1E5B',
+    padding: 10,
+    borderRadius: 16,
+    alignItems: 'center',
+  },
+  joinLeaveButtonText: {
+    color: 'white',
+    fontSize: 12,
+  },
   matchCard: {
     backgroundColor: '#FFFFFF',
     borderRadius: 12,
